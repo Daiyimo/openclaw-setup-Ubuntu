@@ -14,6 +14,10 @@
 
 ### 方式 A：克隆仓库执行 (推荐)
 ```bash
-git clone https://ghproxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup
+# 需要先进入特权模式install git
+sudo -i
+# 输入密码
+apt install git
+git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup
 cd setup
 sudo bash setup.sh
