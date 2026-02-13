@@ -1,18 +1,22 @@
-# Server Auto-Setup Script
+# Server Auto-Setup Script (Optimized for OpenClaw)
 
-这是一个用于 Linux 服务器快速初始化环境的自动化脚本。
+这是一个为 Linux 服务器（特别是 Ubuntu 24.04+）量身定制的自动化初始化脚本，旨在快速搭建 AI Agent 开发环境。
 
-## 包含的功能
-1.  **系统优化**：自动更新软件包、设置 `Asia/Shanghai` 时区。
-2.  **时间同步**：安装并配置 `chrony` 强制校验时间。
-3.  **SSH 增强**：自动配置并重启 SSH，允许 Root 登录及密码认证。
-4.  **开发环境**：自动安装 **Node.js 22.x**。
-5.  **OpenClaw**：自动下载安装脚本，并提供交互式选项供用户选择安装方式。
-6.  **信息反馈**：脚本结束时自动显示设备内网 IP。
+适配openclaw此更新：https://github.com/openclaw/openclaw/releases/tag/v2026.2.12
 
-## 使用方法
+## 🚀 核心功能
+* **系统环境优化**：自动设置 `Asia/Shanghai` 时区，更新系统补丁。
+* **工具链集成**：预装 `Vim`、`curl`、`git`。
+* **SSH 增强**：自动配置并重启 SSH，允许 Root 登录及密码认证。
+* **Node.js 生态**：自动安装 **Node.js 22.x**，并升级 `npm` 和 `pnpm` 至最新版本。
+* **OpenClaw 适配**：
+    * 自动下载安装脚本。
+    * **时区对齐**：脚本设置的系统时区将自动被 OpenClaw (v2026.2.12+) 识别。
+    * **交互安装**：支持通过官方脚本、pnpm 或 npm 多种方式安装。
 
-### 方式 A：克隆仓库执行 (推荐)
+## 📦 快速开始
+
+### 方式 A：克隆仓库执行（推荐）
 ```bash
 # 需要先进入特权模式install git
 sudo -i
