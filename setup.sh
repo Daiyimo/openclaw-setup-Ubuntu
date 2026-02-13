@@ -39,12 +39,22 @@ npm install -g npm@latest pnpm@latest
 
 echo -e "${CYAN}环境版本: Node $(node -v) | NPM $(npm -v) | pnpm $(pnpm -v)${NC}"
 
+# --- 新增融合部分：克隆配置仓库 ---
+echo -e "\n${YELLOW}>>> 2.5 获取自定义 OpenClaw 配置仓库...${NC}"
+if [ ! -d "setup_repo" ]; then
+    git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup_repo
+    echo -e "${GREEN}仓库已克隆至 setup_repo 目录${NC}"
+else
+    echo -e "${CYAN}setup_repo 目录已存在，跳过克隆。${NC}"
+fi
+# ------------------------------
+
 echo -e "\n${YELLOW}>>> 3. 获取 OpenClaw 安装脚本 (v2026.2.12+)...${NC}"
 # 下载 OpenClaw 安装脚本
 curl -fsSL https://openclaw.ai/install.sh -o openclaw_install.sh
 
 echo -e "\n${GREEN}-------------------------------------------${NC}"
-echo -e "环境准备就绪！设备内网 IP: ${CYAN}$(ip addr | grep "inet 192" | awk '{print $2}' | cut -d/ -f1)${NC}"
+echo -e "环境准备就绪！设备内网 IP: ${CYAN}$(ip addr | grep -E "inet 19(2|8)" | head -n 1 | awk '{print $2}' | cut -d/ -f1)${NC}"
 echo -e "OpenClaw v2026.2.12 特性：支持使用 ${YELLOW}--local-time${NC} 同步系统时区日志。"
 echo -e "${GREEN}-------------------------------------------${NC}"
 
