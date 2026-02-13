@@ -16,4 +16,4 @@
 ```bash
 git clone https://ghproxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup
 cd setup
-sudo ./setup.sh
+sudo bash setup.sh
