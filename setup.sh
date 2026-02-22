@@ -55,7 +55,7 @@ else
     echo -e "${CYAN}setup_repo 目录已存在，跳过克隆。${NC}"
 fi
 
-echo -e "\n${YELLOW}>>> 3. 获取 OpenClaw 安装脚本 (v2026.2.12+)...${NC}"
+echo -e "\n${YELLOW}>>> 3. 获取 OpenClaw 安装脚本...${NC}"
 # 下载 OpenClaw 安装脚本并赋予权限
 curl -fsSL https://openclaw.ai/install.sh -o openclaw_install.sh
 chown "$ACTUAL_USER:$ACTUAL_USER" openclaw_install.sh
@@ -63,7 +63,7 @@ chown "$ACTUAL_USER:$ACTUAL_USER" openclaw_install.sh
 echo -e "\n${GREEN}-------------------------------------------${NC}"
 echo -e "环境准备就绪！设备内网 IP: ${CYAN}$(ip addr | grep -E "inet 19(2|8)" | head -n 1 | awk '{print $2}' | cut -d/ -f1)${NC}"
 echo -e "当前执行用户: ${YELLOW}$ACTUAL_USER${NC}"
-echo -e "OpenClaw v2026.2.12 特性：支持使用 --local-time 同步系统时区日志。"
+echo -e "OpenClaw 安装脚本已就绪，可自动适配最新版本。"
 echo -e "${GREEN}-------------------------------------------${NC}"
 
 # 交互安装 OpenClaw
@@ -80,10 +80,10 @@ case $choice in
         sudo -u "$ACTUAL_USER" bash openclaw_install.sh
         ;;
     2)
-        sudo -u "$ACTUAL_USER" pnpm add -g openclaw@latest
+        sudo -u "$ACTUAL_USER" pnpm add -g openclaw
         ;;
     3)
-        sudo -u "$ACTUAL_USER" npm install -g openclaw@latest
+        sudo -u "$ACTUAL_USER" npm install -g openclaw
         ;;
     *)
         echo -e "${RED}已跳过 OpenClaw 安装。${NC}"
