@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # --- 权限与用户信息获取 ---
-# 获取调用 sudo 的原始用户名，如果是直接 root 登录则仍为 root
 ACTUAL_USER=${SUDO_USER:-$USER}
 USER_HOME=$(eval echo ~$ACTUAL_USER)
+# 预设锁定版本
+export OPENCLAW_VERSION="2026.2.19"
 
 # 定义颜色
 GREEN='\033[0;32m'
@@ -12,95 +13,90 @@ CYAN='\033[0;36m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${GREEN}>>> 1. 基础环境配置 (Vim/时区/SSH/更新)...${NC}"
-# 设置时区
+echo -e "${GREEN}>>> 1. 基础环境配置 (构建工具/时区/SSH)...${NC}"
 timedatectl set-timezone Asia/Shanghai
-echo -e "${CYAN}当前系统时区: $(cat /etc/timezone)${NC}"
 
-# 更新系统并安装基础工具
+# 增加 build-essential (防止 node-gyp 编译失败)
 apt update && apt upgrade -y
-apt install -y chrony openssh-server curl git vim
+apt install -y chrony openssh-server curl git vim build-essential
 
-# 修正：在 Ubuntu Noble 等新版本中，使用 chrony 而非 chronyd
+# 时间同步配置
 systemctl unmask chrony.service > /dev/null 2>&1
-systemctl enable chrony
-systemctl start chrony
-# 强制校验时间
+systemctl enable chrony && systemctl start chrony
 chronyc -a makestep
 
-# Vim 基础优化 (应用到原始用户 and root)
-echo -e "set number\nsyntax on\nset tabstop=4" > ~/.vimrc
-[ "$ACTUAL_USER" != "root" ] && echo -e "set number\nsyntax on\nset tabstop=4" > "$USER_HOME/.vimrc"
-
-# SSH 配置
+# SSH 与 Vim 优化
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 systemctl restart ssh
-echo -e "${CYAN}基础工具与 SSH 配置已完成。${NC}"
+echo -e "set number\nsyntax on\nset tabstop=4" > ~/.vimrc
+[ "$ACTUAL_USER" != "root" ] && echo -e "set number\nsyntax on\nset tabstop=4" > "$USER_HOME/.vimrc"
 
-echo -e "\n${GREEN}>>> 2. 安装 Node.js 22 & 更新包管理器...${NC}"
+echo -e "\n${GREEN}>>> 2. 安装 Node.js 22 & 包管理器...${NC}"
 curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 apt install -y nodejs
-npm install -g npm@latest pnpm@latest
+npm install -g npm@latest pnpm@latest pm2@latest
 
-# 针对 pnpm 的全局路径预修复 (防止 ERR_PNPM_NO_GLOBAL_BIN_DIR)
+# --- 核心优化：修复 pnpm 路径并持久化 ---
 if [ "$ACTUAL_USER" != "root" ]; then
+    echo -e "${CYAN}正在配置 $ACTUAL_USER 的 pnpm 全局环境...${NC}"
+    # 自动初始化 pnpm
+    sudo -u "$ACTUAL_USER" pnpm setup
+    # 显式指定全局 Bin 目录
     sudo -u "$ACTUAL_USER" pnpm config set global-bin-dir "$USER_HOME/.local/bin"
-    # 确保该目录在当前 root 环境的 PATH 中，以便后续执行
+    # 确保该目录立即进入当前执行环境的 PATH
     export PATH="$USER_HOME/.local/bin:$PATH"
+    # 写入 bashrc 防止重启失效 (去重写入)
+    grep -qF ".local/bin" "$USER_HOME/.bashrc" || echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$USER_HOME/.bashrc"
 fi
 
-echo -e "${CYAN}环境版本: Node $(node -v) | NPM $(npm -v) | pnpm $(pnpm -v)${NC}"
-
-# --- 2.5 获取自定义 OpenClaw 配置仓库 (以普通用户身份) ---
 echo -e "\n${YELLOW}>>> 2.5 获取自定义配置仓库...${NC}"
-if [ ! -d "setup_repo" ]; then
-    # 使用 sudo -u 确保文件夹所有权属于普通用户
-    sudo -u "$ACTUAL_USER" git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup_repo
-    echo -e "${GREEN}仓库已克隆至 setup_repo 目录 (所有者: $ACTUAL_USER)${NC}"
-else
-    echo -e "${CYAN}setup_repo 目录已存在，跳过克隆。${NC}"
-fi
+[ ! -d "setup_repo" ] && sudo -u "$ACTUAL_USER" git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup_repo
 
-# --- 3. 固定版本并获取安装脚本 ---
-echo -e "\n${YELLOW}>>> 3. 获取 OpenClaw 安装脚本 (固定版本: 2026.2.19)...${NC}"
-# 设置环境变量
-export OPENCLAW_VERSION=2026.2.19
-
-# 下载 OpenClaw 安装脚本并赋予权限
+echo -e "\n${YELLOW}>>> 3. 处理 OpenClaw 安装脚本...${NC}"
 curl -fsSL https://openclaw.ai/install.sh -o openclaw_install.sh
 chown "$ACTUAL_USER:$ACTUAL_USER" openclaw_install.sh
 
+# 【关键优化】强制修改官方脚本中的版本逻辑 (尝试匹配并替换)
+# 即使脚本不支持变量，我们也通过 sed 暴力修改脚本内的 version 赋值
+sed -i "s/VERSION=\"latest\"/VERSION=\"$OPENCLAW_VERSION\"/g" openclaw_install.sh 2>/dev/null
+sed -i "s/version=\"latest\"/version=\"$OPENCLAW_VERSION\"/g" openclaw_install.sh 2>/dev/null
+
 echo -e "\n${GREEN}-------------------------------------------${NC}"
-echo -e "环境准备就绪！设备内网 IP: ${CYAN}$(ip addr | grep -E "inet 19(2|8)" | head -n 1 | awk '{print $2}' | cut -d/ -f1)${NC}"
-echo -e "当前执行用户: ${YELLOW}$ACTUAL_USER${NC}"
-echo -e "预设安装版本: ${CYAN}$OPENCLAW_VERSION${NC}"
-echo -e "${GREEN}-------------------------------------------${NC}"
+echo -e "设备 IP: ${CYAN}$(ip addr | grep -E "inet 19(2|8)" | head -n 1 | awk '{print $2}' | cut -d/ -f1)${NC}"
+echo -e "执行用户: ${YELLOW}$ACTUAL_USER${NC}"
+echo -e "锁定版本: ${CYAN}$OPENCLAW_VERSION${NC}"
+echo -e "-------------------------------------------${NC}"
 
-# 交互安装 OpenClaw
-echo -e "${YELLOW}请选择 OpenClaw 安装方式 (将以 $ACTUAL_USER 身份执行)：${NC}"
-echo "1) 使用官方脚本安装 (推荐，支持环境变量透传)"
-echo "2) 使用 pnpm 安装指定版本 ($OPENCLAW_VERSION)"
-echo "3) 使用 npm 安装指定版本 ($OPENCLAW_VERSION)"
+echo -e "${YELLOW}请选择安装方式：${NC}"
+echo "1) 官方脚本安装 (已通过 sed 尝试锁定版本)"
+echo "2) pnpm 锁定版本安装 (推荐，最快)"
+echo "3) npm 锁定版本安装 (最稳)"
 echo "n) 暂不安装"
-
-read -p "请输入选项 [1/2/3/n]: " choice
+read -p "选项 [1/2/3/n]: " choice
 
 case $choice in
     1)
-        # 使用 -E 参数将当前 Shell 的 OPENCLAW_VERSION 变量传递给 sudo 环境
         sudo -E -u "$ACTUAL_USER" bash openclaw_install.sh
         ;;
     2)
-        # 再次确保 pnpm 环境正确
         sudo -u "$ACTUAL_USER" pnpm add -g "openclaw@$OPENCLAW_VERSION"
         ;;
     3)
         sudo -u "$ACTUAL_USER" npm install -g "openclaw@$OPENCLAW_VERSION"
         ;;
     *)
-        echo -e "${RED}已跳过 OpenClaw 安装。${NC}"
+        echo -e "${RED}跳过安装。${NC}"
+        exit 0
         ;;
 esac
 
-echo -e "\n${GREEN}脚本运行完毕，祝你开发顺利，$ACTUAL_USER！${NC}"
+# --- 4. 善后处理 ---
+echo -e "\n${GREEN}>>> 4. 最后的检查...${NC}"
+# 自动尝试为用户刷新 PATH
+sudo -u "$ACTUAL_USER" pm2 --version > /dev/null 2>&1
+
+echo -e "${GREEN}安装完成！${NC}"
+echo -e "${YELLOW}重要提示：${NC}"
+echo -e "1. 请执行 ${CYAN}source ~/.bashrc${NC} 来激活命令。"
+echo -e "2. 建议使用 ${CYAN}pm2 start openclaw${NC} 来运行程序。"
