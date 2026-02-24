@@ -35,13 +35,14 @@ echo ""
 # 1. 系统环境配置
 # ============================================================
 info "设置时区为 Asia/Shanghai..."
-timedatectl set-timezone Asia/Shanghai
+timedatectl set-timezone Asia/Shanghai || warn "无法设置时区"
 
 info "更新系统软件包..."
 apt update && apt upgrade -y
 
-info "安装基础工具..."
-apt install -y curl wget git vim unzip tar build-essential
+info "安装基础工具及 SSH 服务..."
+# 显式安装 openssh-server 以防系统精简版缺少该服务
+apt install -y curl wget git vim unzip tar build-essential openssh-server
 
 # ============================================================
 # 2. 安装 Node.js 22.x
@@ -55,19 +56,31 @@ else
 fi
 
 info "Node.js 版本: $(node -v)"
-info "npm 版本:     $(npm -v)"
+info "npm 版本:      $(npm -v)"
 
 # ============================================================
 # 3. 配置 SSH（允许 Root 登录 + 密码认证）
 # ============================================================
-info "配置 SSH..."
+info "正在配置 SSH 策略..."
 SSHD_CONFIG="/etc/ssh/sshd_config"
 
-sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/'        "$SSHD_CONFIG"
-sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' "$SSHD_CONFIG"
+# 确保服务已启动并开机自启
+systemctl enable ssh
+systemctl start ssh
 
-systemctl restart sshd || systemctl restart ssh
-info "SSH 配置完成"
+# 自动修改配置，不再需要手动执行 nano
+# 逻辑：如果配置行存在则替换，如果不存在则在文件末尾追加
+grep -q "^PermitRootLogin" "$SSHD_CONFIG" && \
+    sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' "$SSHD_CONFIG" || \
+    echo "PermitRootLogin yes" >> "$SSHD_CONFIG"
+
+grep -q "^PasswordAuthentication" "$SSHD_CONFIG" && \
+    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "$SSHD_CONFIG" || \
+    echo "PasswordAuthentication yes" >> "$SSHD_CONFIG"
+
+# 重启服务使配置生效
+systemctl restart ssh
+info "SSH 配置已完成并已重启服务"
 
 # ============================================================
 # 4. 全局安装 OpenClaw
@@ -94,6 +107,7 @@ fi
 # 5. 初始化 OpenClaw（安装 daemon 服务）
 # ============================================================
 info "正在执行 OpenClaw 初始化..."
+# 注意：这里如果提示设置 root 密码，请确保你已经手动设置过系统 root 密码
 openclaw onboard --install-daemon
 
 # ============================================================
