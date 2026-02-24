@@ -3,6 +3,7 @@ set -e
 
 # ============================================================
 #  OpenClaw v2026.2.19 一键加速安装脚本 (Ubuntu 24.04+)
+#  优化：采用二进制直装 + 国内双重镜像加速 (npmmirror)
 # ============================================================
 
 OPENCLAW_VERSION="v2026.2.19"
@@ -25,10 +26,13 @@ fi
 
 echo ""
 echo "========================================"
-echo "  OpenClaw ${OPENCLAW_VERSION} 加速安装版"
-echo "  镜像站：清华大学 TUNA / npmmirror"
+echo "  OpenClaw ${OPENCLAW_VERSION} 极速安装版"
+echo "  模式：二进制直装 (跳过不稳定 APT 源)"
 echo "========================================"
 echo ""
+
+# 清理之前可能失败的残留文件
+sudo rm -f /etc/apt/sources.list.d/nodesource.list
 
 # ============================================================
 # 1. 系统环境配置
@@ -40,57 +44,68 @@ info "更新系统软件包..."
 apt update && apt upgrade -y
 
 info "安装基础工具..."
-apt install -y curl wget git vim unzip tar build-essential gnupg
+apt install -y curl wget git vim unzip tar build-essential xz-utils
 
 # ============================================================
-# 2. 安装 Node.js 22.x (使用清华镜像)
+# 2. 安装 Node.js 22.x (通过国内二进制镜像)
 # ============================================================
 if command -v node &>/dev/null && [[ "$(node -v)" == v${NODE_MAJOR}.* ]]; then
     info "Node.js $(node -v) 已安装，跳过"
 else
-    info "配置 NodeSource 国内镜像源..."
-    # 导入密钥
-    sudo mkdir -p /usr/share/keyrings
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -y -o /usr/share/keyrings/nodesource.gpg || true
+    info "正在从国内镜像 (npmmirror) 下载 Node.js 二进制包..."
     
-    # 写入清华大学镜像源
-    echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://mirrors.tuna.tsinghua.edu.cn/nodesource/deb_${NODE_MAJOR}.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+    # 自动识别系统架构
+    ARCH=$(uname -m)
+    if [ "$ARCH" = "x86_64" ]; then ARCH="x64"; fi
+    if [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi
     
-    info "正在从国内镜像安装 Node.js..."
-    apt update
-    apt install -y nodejs
+    # 获取最新的 22.x 版本号
+    NODE_V="v22.14.0" 
+    
+    cd /tmp
+    DOWNLOAD_URL="https://npmmirror.com/mirrors/node/$NODE_V/node-$NODE_V-linux-$ARCH.tar.xz"
+    
+    info "下载地址: $DOWNLOAD_URL"
+    wget -c "$DOWNLOAD_URL" -O node-pkg.tar.xz
+    
+    info "解压并安装到 /usr/local..."
+    tar -xJf node-pkg.tar.xz
+    # 排除掉 readme 和 license 文件，只拷贝核心目录
+    cp -rn node-$NODE_V-linux-$ARCH/{bin,include,lib,share} /usr/local/
+    
+    # 清理缓存
+    rm -rf node-pkg.tar.xz node-$NODE_V-linux-$ARCH
 fi
 
 info "Node.js 版本: $(node -v)"
+info "npm 版本:     $(npm -v)"
 
 # ============================================================
 # 3. 配置 npm 加速
 # ============================================================
-info "配置 npm 使用国内镜像源 (npmmirror)..."
+info "设置 npm 全局使用国内镜像源..."
 npm config set registry https://registry.npmmirror.com -g
 
 # ============================================================
-# 4. 配置 SSH（允许 Root 登录）
+# 4. 配置 SSH
 # ============================================================
-info "配置 SSH..."
+info "配置 SSH 登录权限..."
 SSHD_CONFIG="/etc/ssh/sshd_config"
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/'      "$SSHD_CONFIG"
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' "$SSHD_CONFIG"
 systemctl restart sshd || systemctl restart ssh
-info "SSH 配置完成"
 
 # ============================================================
-# 5. 全局安装 OpenClaw
+# 5. 安装 OpenClaw
 # ============================================================
-info "通过 npm 镜像安装 OpenClaw ${OPENCLAW_VERSION}..."
-# 这里加上了 registry 参数确保万无一失
+info "正在安装 OpenClaw ${OPENCLAW_VERSION}..."
 npm install -g "openclaw@${OPENCLAW_VERSION}" --registry=https://registry.npmmirror.com \
-    || error "npm 安装失败，请检查网络连接"
+    || error "OpenClaw 安装失败"
 
 info "OpenClaw 已安装: $(openclaw --version)"
 
 # ============================================================
-# 6. 初始化 OpenClaw
+# 6. 初始化
 # ============================================================
 info "正在执行 OpenClaw 初始化..."
 openclaw onboard --install-daemon
@@ -100,9 +115,10 @@ openclaw onboard --install-daemon
 # ============================================================
 echo ""
 echo "========================================"
-echo -e "  ${GREEN}OpenClaw 安装完成！速度已通过镜像加速。${NC}"
+echo -e "  ${GREEN}安装成功！${NC}"
+echo "  Node.js 和 OpenClaw 均已通过国内镜像完成。"
 echo "========================================"
 echo ""
-echo "启动 Gateway："
+echo "你可以通过以下命令启动 Gateway："
 echo "  openclaw gateway"
 echo ""
