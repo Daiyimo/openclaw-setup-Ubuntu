@@ -30,7 +30,8 @@ echo "  模式：极速版 (手动初始化)"
 echo "========================================"
 echo ""
 
-# 自动清理之前尝试失败的残留源文件
+# 1. 彻底清理之前失败的残留 APT 源文件（解决你截图中的报错）
+info "清理冲突的源文件..."
 sudo rm -f /etc/apt/sources.list.d/nodesource.list
 
 # ============================================================
@@ -42,7 +43,7 @@ timedatectl set-timezone Asia/Shanghai
 info "更新系统软件包列表..."
 apt update
 
-info "安装基础工具 (wget, git, xz-utils)..."
+info "安装基础工具..."
 apt install -y curl wget git vim unzip tar build-essential xz-utils
 
 # ============================================================
@@ -51,26 +52,27 @@ apt install -y curl wget git vim unzip tar build-essential xz-utils
 if command -v node &>/dev/null && [[ "$(node -v)" == v${NODE_MAJOR}.* ]]; then
     info "Node.js $(node -v) 已安装，跳过"
 else
-    info "正在通过 npmmirror 下载 Node.js 二进制包..."
+    info "正在通过 npmmirror 下载 Node.js 二进制包 (跳过 APT)..."
     
     # 自动识别系统架构 (x64 或 arm64)
     ARCH=$(uname -m)
     if [ "$ARCH" = "x86_64" ]; then ARCH="x64"; fi
     if [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi
     
-    # 设定 Node.js 版本 (LTS)
+    # 设定 Node.js 具体版本
     NODE_V="v22.14.0"
     
     cd /tmp
     DOWNLOAD_URL="https://npmmirror.com/mirrors/node/$NODE_V/node-$NODE_V-linux-$ARCH.tar.xz"
     
     info "下载地址: $DOWNLOAD_URL"
+    # 使用 wget 直接下载，不检查证书以防万一
     wget --no-check-certificate -c "$DOWNLOAD_URL" -O node-pkg.tar.xz
     
     info "正在解压并部署到 /usr/local..."
     tar -xJf node-pkg.tar.xz
     
-    # 拷贝核心文件
+    # 将二进制文件拷贝到系统目录
     cp -rn node-$NODE_V-linux-$ARCH/{bin,include,lib,share} /usr/local/
     
     # 强制创建软链接确保全局可用
