@@ -20,8 +20,9 @@
 
 ### 方式 A：一行命令安装
 ```bash
+# v2026.2.19版本
 sudo apt update && sudo apt install -y curl && \
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/setup.sh -o setup.sh && \
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/2026.2.19/setup.sh -o setup.sh && \
 sudo bash setup.sh
 ```
 
@@ -29,7 +30,7 @@ sudo bash setup.sh
 ```bash
 sudo -i
 apt install git
-git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup
+git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu/2026.2.19.git setup
 cd setup
 sudo bash setup.sh
 ```
@@ -48,5 +49,5 @@ sudo bash setup.sh
 
 启动 Gateway：
 ```bash
-openclaw gateway --port 18789 --verbose
+openclaw gateway
 ```
