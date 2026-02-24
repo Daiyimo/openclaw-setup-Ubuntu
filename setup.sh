@@ -9,7 +9,9 @@ set -e
 OPENCLAW_VERSION="v2026.2.19"
 INSTALL_DIR="/opt/openclaw"
 PROXY="https://gh-proxy.com"
-SOURCE_URL="${PROXY}/https://github.com/openclaw/OpenClaw/archive/refs/tags/${OPENCLAW_VERSION}.tar.gz"
+SOURCE_URL="${PROXY}/https://github.com/openclaw/openclaw/archive/refs/tags/${OPENCLAW_VERSION}.tar.gz"
+# 备用直连地址（gh-proxy 不可用时使用）
+FALLBACK_URL="https://github.com/openclaw/openclaw/archive/refs/tags/${OPENCLAW_VERSION}.tar.gz"
 NODE_MAJOR=22
 
 # --- 颜色输出 ---
@@ -93,7 +95,9 @@ TEMP_DIR=$(mktemp -d)
 TARBALL="${TEMP_DIR}/openclaw.tar.gz"
 
 curl -L --fail --progress-bar "${SOURCE_URL}" -o "${TARBALL}" \
-    || error "下载失败，请检查网络连接或代理是否可用"
+    || { warn "gh-proxy 下载失败，尝试直连 GitHub..."; \
+         curl -L --fail --progress-bar "${FALLBACK_URL}" -o "${TARBALL}"; } \
+    || error "下载失败，请检查网络连接"
 
 info "下载完成，正在解压..."
 mkdir -p "${INSTALL_DIR}"
