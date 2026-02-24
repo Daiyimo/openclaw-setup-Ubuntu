@@ -78,6 +78,18 @@ npm install -g "openclaw@${OPENCLAW_VERSION}" \
 
 info "OpenClaw 已安装: $(openclaw --version)"
 
+# --- 查看全局 node_modules 及 extensions 路径 ---
+GLOBAL_NODE_MODULES="$(npm root -g)"
+info "全局 node_modules 路径: ${GLOBAL_NODE_MODULES}"
+
+EXTENSIONS_DIR="${GLOBAL_NODE_MODULES}/openclaw/extensions"
+if [ -d "${EXTENSIONS_DIR}" ]; then
+    info "openclaw/extensions 路径: ${EXTENSIONS_DIR}"
+    ls -la "${EXTENSIONS_DIR}"
+else
+    warn "未找到 openclaw/extensions 目录: ${EXTENSIONS_DIR}"
+fi
+
 # ============================================================
 # 5. 初始化 OpenClaw（安装 daemon 服务）
 # ============================================================
