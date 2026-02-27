@@ -1,16 +1,16 @@
 # Server Auto-Setup Script (Optimized for OpenClaw)
 
-> Last updated: 2026-02-24 | Update by Claude-4.6-Opus
+> Last updated: 2026-02-27 | Update by Claude-4.6-Sonnet
 
 这是一个为 Linux 服务器（特别是 Ubuntu 24.04+）量身定制的自动化初始化脚本，旨在快速搭建 AI Agent 开发环境。
 
-适配openclaw此更新：https://github.com/openclaw/openclaw/releases/tag/v2026.2.19
+适配openclaw此更新：https://github.com/openclaw/openclaw/releases/tag/v2026.2.26
 
 ## 🚀 核心功能
 * **系统环境优化**：自动设置 `Asia/Shanghai` 时区，更新系统补丁。
 * **工具链集成**：预装 `Vim`、`curl`、`git`、`build-essential` 等基础工具。
 * **SSH 增强**：自动配置并重启 SSH，允许 Root 登录及密码认证。
-* **Node.js 生态**：自动安装 **Node.js 22.x** 并升级 `npm`。
+* **Node.js 生态**：自动安装 **Node.js 22.x**（需 >= 22.12.0）并升级 `npm`。
 * **OpenClaw 一键安装**：
     * 通过 `npm install -g` 全局安装指定版本 OpenClaw。
     * 自动执行 `openclaw onboard --install-daemon` 完成初始化。
@@ -20,9 +20,9 @@
 
 ### 方式 A：一行命令安装
 ```bash
-# v2026.2.19版本
+# 2026.2.26 版本
 sudo apt update && sudo apt install -y curl && \
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/2026.2.19/setup.sh -o setup.sh && \
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/2026.2.26/setup.sh -o setup.sh && \
 sudo bash setup.sh
 ```
 
@@ -30,7 +30,7 @@ sudo bash setup.sh
 ```bash
 sudo -i
 apt install git
-git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu/2026.2.19.git setup
+git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b 2026.2.26 setup
 cd setup
 sudo bash setup.sh
 ```
@@ -40,9 +40,9 @@ sudo bash setup.sh
 | 步骤 | 操作 | 说明 |
 |------|------|------|
 | 1 | 系统环境配置 | 设置时区 `Asia/Shanghai`、更新系统、安装基础工具 |
-| 2 | 安装 Node.js 22.x | 通过 NodeSource 官方源安装，已安装则跳过 |
+| 2 | 安装 Node.js 22.x | 通过 NodeSource 官方源安装（需 >= 22.12.0），已安装则跳过 |
 | 3 | 配置 SSH | 允许 Root 登录 + 密码认证，重启 sshd |
-| 4 | 全局安装 OpenClaw | `npm install -g openclaw@v2026.2.19` |
+| 4 | 全局安装 OpenClaw | `npm install -g openclaw@2026.2.26` |
 | 5 | 初始化 | `openclaw onboard --install-daemon` |
 
 ## 🚀 安装完成后

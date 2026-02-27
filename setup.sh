@@ -2,11 +2,11 @@
 set -e
 
 # ============================================================
-#  OpenClaw v2026.2.19 一键安装脚本 (Ubuntu 24.04+)
+#  OpenClaw 2026.2.26 一键安装脚本 (Ubuntu 24.04+)
 #  通过 npm 全局安装 OpenClaw 并自动完成初始化
 # ============================================================
 
-OPENCLAW_VERSION="v2026.2.19"
+OPENCLAW_VERSION="2026.2.26"
 NODE_MAJOR=22
 
 # --- 颜色输出 ---
@@ -26,7 +26,7 @@ fi
 
 echo ""
 echo "========================================"
-echo "  OpenClaw ${OPENCLAW_VERSION} 一键安装"
+echo "  OpenClaw v${OPENCLAW_VERSION} 一键安装"
 echo "  适用于 Ubuntu 24.04+"
 echo "========================================"
 echo ""
@@ -115,7 +115,7 @@ openclaw onboard --install-daemon
 # ============================================================
 echo ""
 echo "========================================"
-echo -e "  ${GREEN}OpenClaw ${OPENCLAW_VERSION} 安装完成！${NC}"
+echo -e "  ${GREEN}OpenClaw v${OPENCLAW_VERSION} 安装完成！${NC}"
 echo "========================================"
 echo ""
 echo "启动 Gateway："
