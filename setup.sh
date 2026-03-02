@@ -2,11 +2,11 @@
 set -e
 
 # ============================================================
-#  OpenClaw 2026.2.26 一键安装脚本 (Ubuntu 24.04+)
+#  OpenClaw 2026.3.1 一键安装脚本 (Ubuntu 24.04+)
 #  通过 npm 全局安装 OpenClaw 并自动完成初始化
 # ============================================================
 
-OPENCLAW_VERSION="2026.2.26"
+OPENCLAW_VERSION="2026.3.1"
 NODE_MAJOR=22
 
 # --- 颜色输出 ---
@@ -121,4 +121,13 @@ echo ""
 echo "启动 Gateway："
 echo ""
 echo "  openclaw gateway --port 18789 --verbose"
+echo ""
+echo "查看当前配置文件路径（v2026.3.1 新增）："
+echo ""
+echo "  openclaw config file"
+echo ""
+echo "Docker/K8s 健康检查探针（v2026.3.1 新增，Gateway 启动后可用）："
+echo ""
+echo "  GET http://<host>:<port>/health"
+echo "  GET http://<host>:<port>/ready"
 echo ""

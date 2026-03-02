@@ -1,10 +1,10 @@
 # Server Auto-Setup Script (Optimized for OpenClaw)
 
-> Last updated: 2026-02-27 | Update by Claude-4.6-Sonnet
+> Last updated: 2026-03-02 | Update by Claude-4.6-Sonnet
 
 这是一个为 Linux 服务器（特别是 Ubuntu 24.04+）量身定制的自动化初始化脚本，旨在快速搭建 AI Agent 开发环境。
 
-适配openclaw此更新：https://github.com/openclaw/openclaw/releases/tag/v2026.2.26
+适配openclaw此更新：https://github.com/openclaw/openclaw/releases/tag/v2026.3.1
 
 ## 🚀 核心功能
 * **系统环境优化**：自动设置 `Asia/Shanghai` 时区，更新系统补丁。
@@ -20,9 +20,9 @@
 
 ### 方式 A：一行命令安装
 ```bash
-# 2026.2.26 版本
+# 2026.3.1 版本
 sudo apt update && sudo apt install -y curl && \
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/2026.2.26/setup.sh -o setup.sh && \
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/2026.3.1/setup.sh -o setup.sh && \
 sudo bash setup.sh
 ```
 
@@ -30,7 +30,7 @@ sudo bash setup.sh
 ```bash
 sudo -i
 apt install git
-git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b 2026.2.26 setup
+git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b 2026.3.1 setup
 cd setup
 sudo bash setup.sh
 ```
@@ -42,7 +42,7 @@ sudo bash setup.sh
 | 1 | 系统环境配置 | 设置时区 `Asia/Shanghai`、更新系统、安装基础工具 |
 | 2 | 安装 Node.js 22.x | 通过 NodeSource 官方源安装（需 >= 22.12.0），已安装则跳过 |
 | 3 | 配置 SSH | 允许 Root 登录 + 密码认证，重启 sshd |
-| 4 | 全局安装 OpenClaw | `npm install -g openclaw@2026.2.26` |
+| 4 | 全局安装 OpenClaw | `npm install -g openclaw@2026.3.1` |
 | 5 | 初始化 | `openclaw onboard --install-daemon` |
 
 ## 🚀 安装完成后
@@ -50,4 +50,15 @@ sudo bash setup.sh
 启动 Gateway：
 ```bash
 openclaw gateway
+```
+
+查看当前配置文件路径（v2026.3.1 新增）：
+```bash
+openclaw config file
+```
+
+Docker/K8s 健康检查探针（v2026.3.1 新增，Gateway 启动后可用）：
+```
+GET http://<host>:<port>/health
+GET http://<host>:<port>/ready
 ```
