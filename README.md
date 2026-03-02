@@ -51,3 +51,21 @@ sudo bash setup.sh
 ```bash
 openclaw gateway
 ```
+
+---
+
+## 🤖 接入 QQ（NapCat）
+
+OpenClaw 环境搭建完成后，如果你想让 AI Agent 接入 QQ 与好友或群组对话，可以使用以下插件：
+
+> **[openclaw-napcat](https://github.com/Daiyimo/openclaw-napcat)** — 基于 OneBot v11 协议的 QQ 频道插件，已适配最新版 OpenClaw。
+
+**支持的能力包括：**
+- 群聊 / 私聊 / QQ 频道消息收发
+- 图片、语音、文件等多媒体消息
+- 管理员指令、群管、黑白名单
+- 戳一戳、表情回应、AI 语音回复
+- 连接自愈与生产级风控
+
+前往项目查看完整安装与配置说明 →  https://github.com/Daiyimo/openclaw-napcat
+
