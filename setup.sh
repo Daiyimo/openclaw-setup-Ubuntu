@@ -137,23 +137,31 @@ esac
 echo -e "\n${GREEN}>>> 4. 最后的检查与配置...${NC}"
 
 # 确保 pnpm 环境变量
-export PATH="$USER_HOME/.local/bin:$PATH"
+export PATH="$USER_HOME/.local/bin:/usr/local/bin:/usr/bin:$PATH"
+
+# 尝试找到 openclaw 二进制文件位置
+OPENCLAW_BIN=""
+for path in "$USER_HOME/.local/bin/openclaw" "/usr/local/bin/openclaw" "/usr/bin/openclaw"; do
+    if [ -f "$path" ]; then
+        OPENCLAW_BIN="$path"
+        break
+    fi
+done
 
 # 创建软链接，让 sudo 也能使用新版本
-OPENCLAW_BIN="$USER_HOME/.local/bin/openclaw"
-if [ -f "$OPENCLAW_BIN" ]; then
+if [ -n "$OPENCLAW_BIN" ]; then
     ln -sf "$OPENCLAW_BIN" /usr/local/bin/openclaw 2>/dev/null || true
     echo -e "${GREEN}[✓] 已创建软链接 /usr/local/bin/openclaw (sudo 可用)${NC}"
 fi
 
 # 验证安装
-INSTALLED_VERSION=$(sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" openclaw --version 2>/dev/null | grep -oP 'OpenClaw \K[0-9.]+' || echo "")
+INSTALLED_VERSION=$(openclaw --version 2>/dev/null | grep -oP 'OpenClaw \K[0-9.]+' || echo "")
 if [ -n "$INSTALLED_VERSION" ]; then
     echo -e "${GREEN}[✓] OpenClaw $INSTALLED_VERSION 安装成功${NC}"
 
     # 自动运行新手引导
     echo -e "\n${CYAN}正在运行新手引导...${NC}"
-    sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" openclaw onboard --install-daemon
+    openclaw onboard --install-daemon
 else
     echo -e "${RED}[✗] 安装验证失败${NC}"
 fi
