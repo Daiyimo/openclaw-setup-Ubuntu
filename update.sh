@@ -6,6 +6,7 @@
 # 用法：
 #   sudo bash update.sh              # 升级到最新版
 #   OPENCLAW_VERSION=2026.3.2 sudo bash update.sh  # 升级到指定版本
+#   sudo bash update.sh --reinstall # 强制重新安装
 
 ACTUAL_USER=${SUDO_USER:-$USER}
 USER_HOME=$(eval echo ~$ACTUAL_USER)
@@ -17,11 +18,37 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 NPM_MIRROR="https://registry.npmmirror.com"
-# 确保 pnpm 路径
 export PATH="$USER_HOME/.local/bin:/usr/local/bin:/usr/bin:$PATH"
+
+# 检查是否为强制重装模式
+FORCE_REINSTALL=false
+if [[ "$1" == "--reinstall" ]]; then
+    FORCE_REINSTALL=true
+fi
 
 echo -e "${GREEN}>>> OpenClaw 加速更新工具${NC}"
 echo -e "npm 镜像: ${CYAN}$NPM_MIRROR${NC}"
+
+# --- 0. 清理旧版本（避免混合安装问题）---
+if [ "$FORCE_REINSTALL" = true ]; then
+    echo -e "\n${YELLOW}[*] 强制重装模式，清理旧版本...${NC}"
+    # 停止 pm2
+    pm2 stop openclaw 2>/dev/null || true
+    pm2 delete openclaw 2>/dev/null || true
+
+    # 卸载所有安装方式的 openclaw
+    npm uninstall -g openclaw 2>/dev/null || true
+    pnpm remove -g openclaw 2>/dev/null || true
+
+    # 清理旧文件和链接
+    rm -rf "$USER_HOME/.local/share/pnpm" 2>/dev/null || true
+    rm -f "$USER_HOME/.local/bin/openclaw" 2>/dev/null || true
+    rm -f /usr/local/bin/openclaw 2>/dev/null || true
+    rm -f /usr/bin/openclaw 2>/dev/null || true
+    rm -rf /usr/lib/node_modules/openclaw 2>/dev/null || true
+
+    echo -e "${GREEN}[✓] 旧版本已清理${NC}"
+fi
 
 # --- 1. 检测安装方式 ---
 echo -e "\n${CYAN}[1/4] 检测安装方式...${NC}"
@@ -35,29 +62,39 @@ for path in "$USER_HOME/.local/bin/openclaw" "/usr/local/bin/openclaw" "/usr/bin
     fi
 done
 
-# 检测是通过哪种包管理器安装的
-INSTALL_TYPE=""
+# 查找 openclaw 模块目录
+OPENCLAW_MODULE_PATH=""
+for path in "$USER_HOME/.local/lib/node_modules/openclaw" "/usr/lib/node_modules/openclaw" "/usr/local/lib/node_modules/openclaw"; do
+    if [ -d "$path" ]; then
+        OPENCLAW_MODULE_PATH="$path"
+        break
+    fi
+done
+
+# 检测安装类型
+INSTALL_TYPE="unknown"
 if [ -n "$OPENCLAW_BIN_PATH" ]; then
-    # 检查 node_modules 链接确定安装方式
-    if [ "$OPENCLAW_BIN_PATH" = "$USER_HOME/.local/bin/openclaw" ]; then
-        # pnpm 安装在用户目录
-        if command -v pnpm &>/dev/null; then
-            INSTALL_TYPE="pnpm"
-        fi
-    elif [ "$OPENCLAW_BIN_PATH" = "/usr/bin/openclaw" ] || [ "$OPENCLAW_BIN_PATH" = "/usr/local/bin/openclaw" ]; then
-        # 可能是 npm 全局安装
+    if [[ "$OPENCLAW_BIN_PATH" == *".local/bin"* ]]; then
+        INSTALL_TYPE="pnpm"
+    elif [[ "$OPENCLAW_BIN_PATH" == "/usr/bin/openclaw" ]] || [[ "$OPENCLAW_BIN_PATH" == "/usr/local/bin/openclaw" ]]; then
         INSTALL_TYPE="npm"
     fi
 fi
 
-# 如果无法检测，尝试直接运行 openclaw update
-if [ -z "$INSTALL_TYPE" ]; then
-    if command -v openclaw &>/dev/null; then
-        INSTALL_TYPE="auto"
+# 如果模块存在但bin不存在，尝试修复
+if [ -z "$OPENCLAW_BIN_PATH" ] && [ -n "$OPENCLAW_MODULE_PATH" ]; then
+    echo -e "${YELLOW}[!] 发现模块目录但 bin 链接丢失，尝试修复...${NC}"
+    if [ -f "$OPENCLAW_MODULE_PATH/openclaw.mjs" ]; then
+        ln -sf "$OPENCLAW_MODULE_PATH/openclaw.mjs" /usr/local/bin/openclaw 2>/dev/null || true
+        OPENCLAW_BIN_PATH="/usr/local/bin/openclaw"
+        INSTALL_TYPE="npm"
     fi
 fi
 
 echo -e "检测到安装方式: ${YELLOW}$INSTALL_TYPE${NC}"
+if [ -n "$OPENCLAW_BIN_PATH" ]; then
+    echo -e "bin 路径: $OPENCLAW_BIN_PATH"
+fi
 
 # --- 2. 设置镜像 ---
 echo -e "\n${CYAN}[2/4] 设置 npm/pnpm 镜像...${NC}"
@@ -84,44 +121,37 @@ echo -e "\n${CYAN}[3/4] 执行更新...${NC}"
 
 if [ -n "$OPENCLAW_VERSION" ]; then
     # 指定版本模式
-    echo -e "${YELLOW}指定版本: $OPENCLAW_VERSION${NC}"
-
-    case "$INSTALL_TYPE" in
-        pnpm)
-            echo -e "使用 pnpm 升级..."
-            sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$OPENCLAW_VERSION"
-            ;;
-        npm)
-            echo -e "使用 npm 升级..."
-            sudo npm install -g "openclaw@$OPENCLAW_VERSION"
-            ;;
-        *)
-            # 尝试检测并升级
-            if command -v pnpm &>/dev/null && pnpm list -g openclaw 2>/dev/null | grep -q openclaw; then
-                echo -e "使用 pnpm 升级..."
-                sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$OPENCLAW_VERSION"
-            else
-                echo -e "使用 npm 升级..."
-                sudo npm install -g "openclaw@$OPENCLAW_VERSION"
-            fi
-            ;;
-    esac
+    TARGET_VERSION="$OPENCLAW_VERSION"
 else
-    # 最新版模式：使用 openclaw update
-    echo -e "使用 openclaw update 升级到最新版..."
-
-    if command -v openclaw &>/dev/null; then
-        # 设置环境变量让 update 也走镜像
-        export npm_config_registry="$NPM_MIRROR"
-        openclaw update
-    else
-        echo -e "${RED}openclaw 命令未找到，请先运行 setup.sh 安装。${NC}"
-        exit 1
-    fi
+    # 获取最新版本
+    TARGET_VERSION="latest"
 fi
 
-# --- 4. 完成 ---
-echo -e "\n${CYAN}[4/4] 更新完成，检查版本...${NC}"
+echo -e "目标版本: ${YELLOW}$TARGET_VERSION${NC}"
+
+# 执行安装/更新
+case "$INSTALL_TYPE" in
+    pnpm)
+        echo -e "使用 pnpm 升级..."
+        # 清理旧的 pnpm 全局模块
+        rm -rf "$USER_HOME/.local/share/pnpm" 2>/dev/null || true
+        sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$TARGET_VERSION"
+        ;;
+    npm)
+        echo -e "使用 npm 升级..."
+        # 清理旧的 npm 全局模块
+        rm -rf /usr/lib/node_modules/openclaw 2>/dev/null || true
+        sudo npm install -g "openclaw@$TARGET_VERSION"
+        ;;
+    *)
+        # 默认尝试 npm（更可靠）
+        echo -e "未检测到安装方式，使用 npm 安装..."
+        sudo npm install -g "openclaw@$TARGET_VERSION"
+        ;;
+esac
+
+# --- 4. 修复软链接 ---
+echo -e "\n${CYAN}[4/4] 修复软链接...${NC}"
 
 # 重新查找 openclaw 位置
 OPENCLAW_BIN_PATH=""
@@ -132,18 +162,44 @@ for path in "$USER_HOME/.local/bin/openclaw" "/usr/local/bin/openclaw" "/usr/bin
     fi
 done
 
-# 创建软链接
+# 如果 bin 存在但模块目录不存在，尝试修复
 if [ -n "$OPENCLAW_BIN_PATH" ]; then
-    ln -sf "$OPENCLAW_BIN_PATH" /usr/local/bin/openclaw 2>/dev/null || true
-    echo -e "${GREEN}[✓] 软链接已更新${NC}"
+    # 检查主文件是否存在
+    if [[ "$OPENCLAW_BIN_PATH" == *".local/bin"* ]]; then
+        # pnpm 模式，检查模块
+        if [ ! -d "$USER_HOME/.local/share/pnpm" ]; then
+            echo -e "${YELLOW}[!] pnpm 模块可能损坏，尝试修复...${NC}"
+        fi
+    fi
+
+    # 确保 /usr/local/bin 有链接
+    if [ "$OPENCLAW_BIN_PATH" != "/usr/local/bin/openclaw" ]; then
+        ln -sf "$OPENCLAW_BIN_PATH" /usr/local/bin/openclaw 2>/dev/null || true
+    fi
+    echo -e "${GREEN}[✓] 软链接已更新: /usr/local/bin/openclaw -> $OPENCLAW_BIN_PATH${NC}"
+else
+    echo -e "${RED}[✗] 无法找到 openclaw 二进制文件${NC}"
+    echo -e "${YELLOW}请尝试: sudo bash update.sh --reinstall${NC}"
 fi
 
 # 验证版本
+echo -e "\n${CYAN}验证安装...${NC}"
 CURRENT_VERSION=$(openclaw --version 2>/dev/null | grep -oP 'OpenClaw \K[0-9.]+' || echo "")
 if [ -n "$CURRENT_VERSION" ]; then
     echo -e "${GREEN}[✓] 当前版本: $CURRENT_VERSION${NC}"
 else
-    echo -e "${YELLOW}[!] 版本检查失败${NC}"
+    echo -e "${YELLOW}[!] 版本检查失败，尝试手动修复...${NC}"
+    # 最后尝试：直接链接到可能的模块
+    for mjs in /usr/lib/node_modules/openclaw/openclaw.mjs "$USER_HOME/.local/lib/node_modules/openclaw/openclaw.mjs"; do
+        if [ -f "$mjs" ]; then
+            ln -sf "$mjs" /usr/local/bin/openclaw 2>/dev/null || true
+            CURRENT_VERSION=$(openclaw --version 2>/dev/null | grep -oP 'OpenClaw \K[0-9.]+' || echo "")
+            if [ -n "$CURRENT_VERSION" ]; then
+                echo -e "${GREEN}[✓] 修复成功，当前版本: $CURRENT_VERSION${NC}"
+                break
+            fi
+        fi
+    done
 fi
 
 echo -e "\n${GREEN}完成！${NC}"
@@ -151,3 +207,4 @@ echo -e "${YELLOW}提示：${NC}"
 echo -e "- 直接运行 ${CYAN}openclaw gateway${NC} 启动"
 echo -e "- 使用 ${CYAN}sudo openclaw gateway${NC} 运行"
 echo -e "- 如需重启 Gateway：${CYAN}pm2 restart openclaw${NC}"
+echo -e "- 如遇问题，尝试：${CYAN}sudo bash update.sh --reinstall${NC}"
