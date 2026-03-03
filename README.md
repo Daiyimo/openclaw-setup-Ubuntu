@@ -1,6 +1,6 @@
 # OpenClaw Ubuntu 一键安装脚本
 
-> Last updated: 2026-03-02 | Update by Claude-4.6-Sonnet
+> Last updated: 2026-03-03 | Update by Claude-4.6-Sonnet
 
 这是一个为 Linux 服务器（特别是 Ubuntu 24.04+）量身定制的自动化初始化脚本，旨在快速搭建 OpenClaw AI Agent 运行环境。
 
@@ -12,8 +12,9 @@
 
 | 分支 | 适配 OpenClaw 版本 | 状态 |
 |------|-------------------|------|
-| [2026.3.1](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.1) | v2026.3.1 | ✅ 最新 |
-| [2026.2.26](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.2.26) | v2026.2.26 | 维护中 |
+| [2026.3.2](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.2) | v2026.3.2 | ✅ 最新 |
+| [2026.3.1](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.1) | v2026.3.1 | 维护中 |
+| [2026.2.26](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.2.26) | v2026.2.26 | 归档 |
 | [2026.2.19](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.2.19) | v2026.2.19 | 归档 |
 | main | 开发主线（最早期版本） | 参考用 |
 
@@ -34,12 +35,12 @@
 
 ---
 
-## 📦 快速开始（以最新版 2026.3.1 为例）
+## 📦 快速开始（以最新版 2026.3.2 为例）
 
 ### 方式 A：一行命令安装
 ```bash
 sudo apt update && sudo apt install -y curl && \
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/2026.3.1/setup.sh -o setup.sh && \
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/2026.3.2/setup.sh -o setup.sh && \
 sudo bash setup.sh
 ```
 
@@ -47,12 +48,12 @@ sudo bash setup.sh
 ```bash
 sudo -i
 apt install git
-git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b 2026.3.1 setup
+git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b 2026.3.2 setup
 cd setup
 sudo bash setup.sh
 ```
 
-> 安装其他版本只需将命令中的 `2026.3.1` 替换为对应分支名即可。
+> 安装其他版本只需将命令中的 `2026.3.2` 替换为对应分支名即可。
 
 ---
 
