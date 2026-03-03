@@ -16,6 +16,8 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 NPM_MIRROR="https://registry.npmmirror.com"
+# 确保 pnpm 路径
+export PATH="$USER_HOME/.local/bin:$PATH"
 
 echo -e "${GREEN}>>> OpenClaw 加速更新工具${NC}"
 echo -e "npm 镜像: ${CYAN}$NPM_MIRROR${NC}"
@@ -43,7 +45,7 @@ if [ -n "$OPENCLAW_VERSION" ]; then
     # 检测当前安装方式
     if command -v pnpm &>/dev/null && pnpm list -g openclaw 2>/dev/null | grep -q openclaw; then
         echo -e "检测到 pnpm 全局安装，使用 pnpm 升级..."
-        sudo -u "$ACTUAL_USER" pnpm add -g "openclaw@$OPENCLAW_VERSION"
+        sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$OPENCLAW_VERSION"
     else
         echo -e "使用 npm 升级..."
         npm install -g "openclaw@$OPENCLAW_VERSION"
@@ -63,7 +65,19 @@ fi
 echo -e "\n${CYAN}[3/3] 更新完成，检查版本...${NC}"
 openclaw --version 2>/dev/null || echo -e "${YELLOW}版本检查失败，请手动执行 openclaw --version${NC}"
 
+# 创建软链接，让 sudo 也能使用新版本
+OPENCLAW_BIN="$USER_HOME/.local/bin/openclaw"
+if [ -f "$OPENCLAW_BIN" ]; then
+    ln -sf "$OPENCLAW_BIN" /usr/local/bin/openclaw 2>/dev/null || true
+    echo -e "${GREEN}[✓] 已创建软链接 /usr/local/bin/openclaw (sudo 可用)${NC}"
+fi
+
+# 自动配置 gateway.mode=local
+sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" openclaw config set gateway.mode local 2>/dev/null || true
+
 echo -e "\n${GREEN}完成！${NC}"
 echo -e "${YELLOW}提示：${NC}"
+echo -e "- 直接运行 ${CYAN}openclaw gateway${NC} 即可启动"
+echo -e "- 使用 ${CYAN}sudo openclaw gateway${NC} 也能运行新版本"
 echo -e "- 如需重启 Gateway：${CYAN}openclaw gateway restart${NC}"
 echo -e "- 如使用 pm2 管理：${CYAN}pm2 restart openclaw${NC}"
