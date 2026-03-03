@@ -28,6 +28,10 @@
 * **工具链集成**：预装 `Vim`、`curl`、`git`、`build-essential` 等基础工具。
 * **SSH 增强**：自动配置并重启 SSH，允许 Root 登录及密码认证。
 * **Node.js 生态**：自动安装 **Node.js 22.x**（需 >= 22.12.0），已安装则自动跳过。
+* **国内全程加速**：
+    * NodeSource 安装脚本通过 `gh-proxy.com` 代理拉取。
+    * npm 全局镜像自动切换为 `npmmirror.com`（阿里云，实时同步官方）。
+    * 镜像写入 `~/.npmrc`，`openclaw update` 后续升级**同样走加速**，无需额外配置。
 * **OpenClaw 一键安装**：
     * 通过 `npm install -g` 全局安装指定版本 OpenClaw。
     * 自动执行 `openclaw onboard --install-daemon` 完成初始化。
@@ -62,9 +66,10 @@ sudo bash setup.sh
 | 步骤 | 操作 | 说明 |
 |------|------|------|
 | 1 | 系统环境配置 | 设置时区 `Asia/Shanghai`、更新系统、安装基础工具 |
-| 2 | 安装 Node.js 22.x | 通过 NodeSource 官方源安装，已安装则跳过 |
+| 2 | 安装 Node.js 22.x | 通过 gh-proxy 代理 NodeSource 脚本安装 |
+| 2.5 | **设置 npm 镜像** | 写入 `~/.npmrc`，切换为 `npmmirror.com`，全程加速 |
 | 3 | 配置 SSH | 允许 Root 登录 + 密码认证，重启 sshd |
-| 4 | 全局安装 OpenClaw | `npm install -g openclaw@<version>` |
+| 4 | 全局安装 OpenClaw | `npm install -g openclaw@<version>`（走镜像） |
 | 5 | 初始化 | `openclaw onboard --install-daemon` |
 
 ---
@@ -81,6 +86,30 @@ openclaw gateway --port 18789 --verbose
 openclaw config file
 ```
 
+升级到最新版（已自动走 npmmirror 加速）：
+```bash
+openclaw update
+```
+
+---
+
+## ⚡ 已安装服务器：加速升级
+
+对于**已通过旧版 setup.sh 安装**、但 `~/.npmrc` 未配置镜像的服务器，可使用 `update.sh` 一键完成镜像配置 + 升级：
+
+```bash
+# 升级到最新版
+sudo bash update.sh
+
+# 升级到指定版本
+OPENCLAW_VERSION=2026.3.2 sudo bash update.sh
+```
+
+`update.sh` 会自动：
+1. 将 npm/pnpm 镜像持久化写入 `~/.npmrc`（后续 `openclaw update` 自动走镜像）
+2. 执行 `openclaw update` 或指定版本安装
+3. 输出当前版本确认
+
 ---
 
 ## ❓ 常见问题
@@ -88,8 +117,13 @@ openclaw config file
 **Q：网络无法访问 GitHub 怎么办？**
 脚本中的克隆地址已通过 `gh-proxy.com` 加速，国内服务器可直接使用。
 
+**Q：npm 安装慢 / openclaw update 下载缓慢怎么办？**
+`setup.sh` 会自动将 npm 镜像切换为 `npmmirror.com`，并写入 `~/.npmrc`。
+对于已安装的服务器，运行 `update.sh` 可一次性完成镜像配置与升级。
+
 **Q：如何升级到新版本？**
-重新执行对应新版本分支的 `setup.sh` 即可，npm 全局安装会自动覆盖旧版本。
+- 推荐：直接运行 `openclaw update`（镜像已配置，速度快）
+- 或：`OPENCLAW_VERSION=x.x.x sudo bash update.sh` 升级到指定版本
 
 **Q：脚本需要 root 权限吗？**
 是的，脚本需要以 root 权限运行（`sudo bash setup.sh`），用于配置系统环境和全局安装。
