@@ -1,8 +1,8 @@
-# OpenClaw Ubuntu 一键安装脚本
+# OpenClaw 多平台一键安装脚本
 
-> Last updated: 2026-03-04 | Update by Claude-4.6-Sonnet
+> Last updated: 2026-03-07 | Update by Claude-4.6-Sonnet
 
-这是一个为 Linux 服务器（特别是 Ubuntu 24.04+）量身定制的自动化初始化脚本，旨在快速搭建 OpenClaw AI Agent 运行环境。
+这是一个跨平台的 OpenClaw AI Agent 自动化安装脚本，支持 **Ubuntu (Linux)**、**macOS** 和 **Windows**。
 
 **不同 OpenClaw 版本对应不同分支**，请根据你的目标版本选择对应分支的脚本。
 
@@ -58,6 +58,50 @@ sudo bash scripts/setup.sh
 ```
 
 > 安装特定版本只需将命令中的 `main` 替换为对应分支名即可（如 `2026.3.2`）。
+
+---
+
+## 🍎 macOS 安装
+
+### 安装脚本
+```bash
+# 克隆仓库
+git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b main setup
+cd setup
+
+# 运行安装脚本
+bash scripts/setup-macos.sh
+
+# 或指定版本
+OPENCLAW_VERSION=2026.3.2 bash scripts/setup-macos.sh
+```
+
+### 前置要求
+- macOS 12+ (Monterey 及以上)
+- 已安装 Homebrew（脚本会自动安装）
+
+---
+
+## 🪟 Windows 安装
+
+### 安装脚本（PowerShell）
+```powershell
+# 克隆仓库
+git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b main setup
+cd setup
+
+# 以管理员身份运行 PowerShell
+.\scripts\setup-windows.ps1
+
+# 或指定版本
+$env:OPENCLAW_VERSION="2026.3.2"; .\scripts\setup-windows.ps1
+```
+
+### 前置要求
+- Windows 10/11
+- PowerShell 5.1+
+- 需要管理员权限
+- 需要 winget 或 chocolatey（脚本会自动检测并使用）
 
 ---
 
