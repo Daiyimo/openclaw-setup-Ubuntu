@@ -44,7 +44,7 @@
 ### 方式 A：一行命令安装（推荐）
 ```bash
 sudo apt update && sudo apt install -y curl && \
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/setup.sh -o setup.sh && \
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh -o setup.sh && \
 sudo bash setup.sh
 ```
 
@@ -54,7 +54,7 @@ sudo -i
 apt install git
 git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b main setup
 cd setup
-sudo bash setup.sh
+sudo bash scripts/setup.sh
 ```
 
 > 安装特定版本只需将命令中的 `main` 替换为对应分支名即可（如 `2026.3.2`）。
@@ -95,18 +95,18 @@ openclaw update
 
 ## ⚡ 已安装服务器：加速升级
 
-对于**已通过旧版 setup.sh 安装**、但 `~/.npmrc` 未配置镜像的服务器，可使用 `update.sh` 一键完成镜像配置 + 升级：
+对于**已通过旧版 setup.sh 安装**、但 `~/.npmrc` 未配置镜像的服务器，可使用 `scripts/update.sh` 一键完成镜像配置 + 升级：
 
 ```bash
 # 升级到最新版
-sudo bash update.sh
+sudo bash scripts/update.sh
 
 # 升级到指定版本
 # 不指定版本则自动更新到最新
-sudo bash update.sh
+sudo bash scripts/update.sh
 
 # 或指定版本
-OPENCLAW_VERSION=2026.3.2 sudo bash update.sh
+OPENCLAW_VERSION=2026.3.2 sudo bash scripts/update.sh
 ```
 
 `update.sh` 会自动：
@@ -122,15 +122,15 @@ OPENCLAW_VERSION=2026.3.2 sudo bash update.sh
 脚本中的克隆地址已通过 `gh-proxy.com` 加速，国内服务器可直接使用。
 
 **Q：npm 安装慢 / openclaw update 下载缓慢怎么办？**
-`setup.sh` 会自动将 npm 镜像切换为 `npmmirror.com`，并写入 `~/.npmrc`。
-对于已安装的服务器，运行 `update.sh` 可一次性完成镜像配置与升级。
+`scripts/setup.sh` 会自动将 npm 镜像切换为 `npmmirror.com`，并写入 `~/.npmrc`。
+对于已安装的服务器，运行 `scripts/update.sh` 可一次性完成镜像配置与升级。
 
 **Q：如何升级到新版本？**
 - 推荐：直接运行 `openclaw update`（镜像已配置，速度快）
-- 或：`OPENCLAW_VERSION=x.x.x sudo bash update.sh` 升级到指定版本
+- 或：`OPENCLAW_VERSION=x.x.x sudo bash scripts/update.sh` 升级到指定版本
 
 **Q：脚本需要 root 权限吗？**
-是的，脚本需要以 root 权限运行（`sudo bash setup.sh`），用于配置系统环境和全局安装。
+是的，脚本需要以 root 权限运行（`sudo bash scripts/setup.sh`），用于配置系统环境和全局安装。
 
 ---
 
