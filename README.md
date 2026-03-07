@@ -41,67 +41,29 @@
 
 ## 📦 快速开始
 
-### 方式 A：一行命令安装（推荐）
+### 🐧 Linux (Ubuntu)
+
+**一行命令安装：**
 ```bash
-sudo apt update && sudo apt install -y curl && \
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh -o setup.sh && \
-sudo bash setup.sh
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh | bash
 ```
 
-### 方式 B：克隆仓库执行
+**或指定版本：**
 ```bash
-sudo -i
-apt install git
-git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b main setup
-cd setup
-sudo bash scripts/setup.sh
+OPENCLAW_VERSION=2026.3.2 curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh | bash
 ```
 
-> 安装特定版本只需将命令中的 `main` 替换为对应分支名即可（如 `2026.3.2`）。
+### 🍎 macOS
 
----
-
-## 🍎 macOS 安装
-
-### 安装脚本
 ```bash
-# 克隆仓库
-git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b main setup
-cd setup
-
-# 运行安装脚本
-bash scripts/setup-macos.sh
-
-# 或指定版本
-OPENCLAW_VERSION=2026.3.2 bash scripts/setup-macos.sh
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup-macos.sh | bash
 ```
 
-### 前置要求
-- macOS 12+ (Monterey 及以上)
-- 已安装 Homebrew（脚本会自动安装）
+### 🪟 Windows (PowerShell)
 
----
-
-## 🪟 Windows 安装
-
-### 安装脚本（PowerShell）
 ```powershell
-# 克隆仓库
-git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git -b main setup
-cd setup
-
-# 以管理员身份运行 PowerShell
-.\scripts\setup-windows.ps1
-
-# 或指定版本
-$env:OPENCLAW_VERSION="2026.3.2"; .\scripts\setup-windows.ps1
+irm https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup-windows.ps1 | iex
 ```
-
-### 前置要求
-- Windows 10/11
-- PowerShell 5.1+
-- 需要管理员权限
-- 需要 winget 或 chocolatey（脚本会自动检测并使用）
 
 ---
 

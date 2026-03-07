@@ -1,45 +1,40 @@
-# OpenClaw Windows 一键安装脚本
-# 适用于 Windows 10/11 (PowerShell)
-#
-# 使用方法：
-#   .\setup-windows.ps1
-#   .\setup-windows.ps1 -Version 2026.3.2
-#
-# 命令行参数：
-#   -Version <版本>    指定 OpenClaw 版本 (默认: latest)
-#   -Registry <url>   npm 镜像源 (默认: https://registry.npmmirror.com)
-#   -Beta             使用 beta 版本
-#   -NoOnboard        跳过新手引导
-#   -NoPrompt         禁用提示 (CI/自动化)
-#   -Verbose          显示详细输出
-#   -Help             显示帮助
-#
-# 环境变量：
-#   OPENCLAW_VERSION  OpenClaw 版本
-#   NPM_MIRROR       npm 镜像源
-
 param(
     [string]$Version,
     [switch]$Beta,
     [string]$Registry,
     [switch]$NoOnboard,
     [switch]$NoPrompt,
-    [switch]$Verbose,
     [switch]$Help
 )
 
-# 使用 Continue 而不是 Stop，避免脚本立即退出
+# Set UTF-8 encoding
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+if ($env:POWERSHELL_TELEMETRY_OPTOUT -ne "1") { chcp 65001 | Out-Null }
+
+# OpenClaw Windows One-Click Installation Script
+# For Windows 10/11 (PowerShell)
+#
+# Usage (local file):
+#   .\setup-windows.ps1
+#   .\setup-windows.ps1 -Version 2026.3.2
+#
+# Usage (one-line):
+#   iwr -useb https://.../setup-windows.ps1 | iex
+#   iwr -useb https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup-windows.ps1 | iex
+#
+# Environment variables:
+#   OPENCLAW_VERSION    Version (default: latest)
+#   OPENCLAW_BETA       Use beta (set to "1")
+#   NPM_MIRROR          npm registry (default: https://registry.npmmirror.com)
+#   OPENCLAW_NO_ONBOARD Skip onboarding (set to "1")
+#   OPENCLAW_NO_PROMPT  Disable prompts (set to "1")
+
+# Use Continue instead of Stop to avoid immediate script exit
 $ErrorActionPreference = "Continue"
 
-# 设置 UTF-8 编码
-try {
-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
-    $OutputEncoding = [System.Text.Encoding]::UTF8
-    chcp 65001 | Out-Null
-} catch {}
-
-# 颜色定义
+# Color definitions
 $AccentColor = "DarkYellow"
 $InfoColor = "Yellow"
 $SuccessColor = "Green"
@@ -47,38 +42,38 @@ $WarnColor = "DarkYellow"
 $ErrorColor = "Red"
 $MutedColor = "DarkGray"
 
-# 显示帮助
+# Show help
 if ($Help) {
     Write-Host ""
-    Write-Host "OpenClaw Windows 安装脚本" -ForegroundColor $AccentColor
+    Write-Host "OpenClaw Windows Installation Script" -ForegroundColor $AccentColor
     Write-Host ""
-    Write-Host "用法:" -ForegroundColor $InfoColor
-    Write-Host "  .\scripts\setup-windows.ps1 [选项]"
+    Write-Host "Usage:" -ForegroundColor $InfoColor
+    Write-Host "  .\setup-windows.ps1 [options]"
+    Write-Host "  iwr -useb https://.../setup-windows.ps1 | iex"
     Write-Host ""
-    Write-Host "选项:" -ForegroundColor $InfoColor
-    Write-Host "  -Version <版本>    指定 OpenClaw 版本 (默认: latest)"
-    Write-Host "  -Beta             使用 beta 版本"
-    Write-Host "  -Registry <url>   npm 镜像源 (默认: https://registry.npmmirror.com)"
-    Write-Host "  -NoOnboard        跳过新手引导"
-    Write-Host "  -NoPrompt         禁用提示 (CI/自动化)"
-    Write-Host "  -Verbose          显示详细输出"
-    Write-Host "  -Help             显示此帮助"
+    Write-Host "Options:" -ForegroundColor $InfoColor
+    Write-Host "  -Version <version>   Specify OpenClaw version (default: latest)"
+    Write-Host "  -Beta                Use beta version"
+    Write-Host "  -Registry <url>      npm mirror (default: https://registry.npmmirror.com)"
+    Write-Host "  -NoOnboard           Skip onboarding"
+    Write-Host "  -NoPrompt            Disable prompts"
+    Write-Host "  -Help                Show this help"
     Write-Host ""
-    Write-Host "环境变量:" -ForegroundColor $InfoColor
-    Write-Host "  OPENCLAW_VERSION  OpenClaw 版本"
-    Write-Host "  NPM_MIRROR       npm 镜像源"
+    Write-Host "Environment variables:" -ForegroundColor $InfoColor
+    Write-Host "  OPENCLAW_VERSION, OPENCLAW_BETA, NPM_MIRROR"
+    Write-Host "  OPENCLAW_NO_ONBOARD, OPENCLAW_NO_PROMPT"
     Write-Host ""
     exit 0
 }
 
-# 配置 - 命令行参数优先，环境变量次之
+# Config - Command-line args take priority, then environment variables
 $script:NoOnboard = $NoOnboard -or ($env:OPENCLAW_NO_ONBOARD -eq "1")
 $script:NoPrompt = $NoPrompt -or ($env:OPENCLAW_NO_PROMPT -eq "1")
 $OpenclawVersion = if ($Version) { $Version } elseif ($env:OPENCLAW_VERSION) { $env:OPENCLAW_VERSION } else { "latest" }
 $NpmRegistry = if ($Registry) { $Registry } elseif ($env:NPM_MIRROR) { $env:NPM_MIRROR } else { "https://registry.npmmirror.com" }
 $UseBeta = $Beta -or ($env:OPENCLAW_BETA -eq "1")
 
-# 刷新 PATH
+# Refresh PATH
 function Refresh-Path {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
@@ -86,17 +81,17 @@ function Refresh-Path {
 # Banner
 Write-Host ""
 Write-Host "  ======================================" -ForegroundColor $AccentColor
-Write-Host "       OpenClaw Windows 安装脚本" -ForegroundColor $AccentColor
+Write-Host "    OpenClaw Windows Installation Script" -ForegroundColor $AccentColor
 Write-Host "  ======================================" -ForegroundColor $AccentColor
 Write-Host ""
-Write-Host "  版本: $OpenclawVersion" -ForegroundColor $MutedColor
-Write-Host "  镜像: $NpmRegistry" -ForegroundColor $MutedColor
+Write-Host "  Version: $OpenclawVersion" -ForegroundColor $MutedColor
+Write-Host "  Registry: $NpmRegistry" -ForegroundColor $MutedColor
 Write-Host ""
 
-# 检测操作系统
+# Detect operating system
 Write-Host "[OK] Windows detected" -ForegroundColor $SuccessColor
 
-# 检查 Node.js
+# Check Node.js
 function Test-NodeInstalled {
     $nodeVersion = $null
     try {
@@ -109,68 +104,68 @@ function Test-NodeInstalled {
             $majorVersion = [int]$Matches[1]
         }
         if ($majorVersion -ge 22) {
-            Write-Host "[OK] Node.js $nodeVersion 已安装" -ForegroundColor $SuccessColor
+            Write-Host "[OK] Node.js $nodeVersion installed" -ForegroundColor $SuccessColor
             return $true
         } else {
-            Write-Host "[!] Node.js $nodeVersion 已安装，但需要 v22+" -ForegroundColor $WarnColor
+            Write-Host "[!] Node.js $nodeVersion installed, but v22+ required" -ForegroundColor $WarnColor
             return $false
         }
     } else {
-        Write-Host "[!] 未找到 Node.js" -ForegroundColor $WarnColor
+        Write-Host "[!] Node.js not found" -ForegroundColor $WarnColor
         return $false
     }
 }
 
-# 安装 Node.js
+# Install Node.js
 function Install-NodeJS {
-    Write-Host "[*] 正在安装 Node.js..." -ForegroundColor $InfoColor
+    Write-Host "[*] Installing Node.js..." -ForegroundColor $InfoColor
 
     # winget
     if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-Host "  使用 winget..." -ForegroundColor $MutedColor
+        Write-Host "  Using winget..." -ForegroundColor $MutedColor
         & winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
         Refresh-Path
 
         if (Test-NodeInstalled) {
-            Write-Host "[OK] Node.js 已通过 winget 安装" -ForegroundColor $SuccessColor
+            Write-Host "[OK] Node.js installed via winget" -ForegroundColor $SuccessColor
             return $true
         }
     }
 
     # Chocolatey
     if (Get-Command choco -ErrorAction SilentlyContinue) {
-        Write-Host "  使用 Chocolatey..." -ForegroundColor $MutedColor
+        Write-Host "  Using Chocolatey..." -ForegroundColor $MutedColor
         & choco install nodejs-lts -y
         Refresh-Path
 
         if (Test-NodeInstalled) {
-            Write-Host "[OK] Node.js 已通过 Chocolatey 安装" -ForegroundColor $SuccessColor
+            Write-Host "[OK] Node.js installed via Chocolatey" -ForegroundColor $SuccessColor
             return $true
         }
     }
 
     # Scoop
     if (Get-Command scoop -ErrorAction SilentlyContinue) {
-        Write-Host "  使用 Scoop..." -ForegroundColor $MutedColor
+        Write-Host "  Using Scoop..." -ForegroundColor $MutedColor
         & scoop install nodejs-lts
         Refresh-Path
 
         if (Test-NodeInstalled) {
-            Write-Host "[OK] Node.js 已通过 Scoop 安装" -ForegroundColor $SuccessColor
+            Write-Host "[OK] Node.js installed via Scoop" -ForegroundColor $SuccessColor
             return $true
         }
     }
 
     Write-Host ""
-    Write-Host "错误: 无法自动安装 Node.js" -ForegroundColor $ErrorColor
+    Write-Host "Error: Cannot auto-install Node.js" -ForegroundColor $ErrorColor
     Write-Host ""
-    Write-Host "请手动安装 Node.js 22+:" -ForegroundColor $InfoColor
-    Write-Host "  https://nodejs.org/zh-cn/download/" -ForegroundColor $AccentColor
+    Write-Host "Please manually install Node.js 22+:" -ForegroundColor $InfoColor
+    Write-Host "  https://nodejs.org/download/" -ForegroundColor $AccentColor
     Write-Host ""
     return $false
 }
 
-# 检查并安装 Node.js
+# Check and install Node.js
 if (-not (Test-NodeInstalled)) {
     if ($NoPrompt) {
         if (-not (Install-NodeJS)) {
@@ -178,71 +173,71 @@ if (-not (Test-NodeInstalled)) {
         }
     } else {
         Write-Host ""
-        $response = Read-Host "是否安装 Node.js? [Y/n]"
+        $response = Read-Host "Install Node.js? [Y/n]"
         if ([string]::IsNullOrEmpty($response) -or $response -match '^[Yy]') {
             if (-not (Install-NodeJS)) {
                 exit 1
             }
         } else {
-            Write-Host "需要 Node.js 22+ 才能继续" -ForegroundColor $ErrorColor
+            Write-Host "Node.js 22+ is required to continue" -ForegroundColor $ErrorColor
             exit 1
         }
     }
 
     if (-not (Test-NodeInstalled)) {
-        Write-Host "Node.js 安装失败" -ForegroundColor $ErrorColor
+        Write-Host "Node.js installation failed" -ForegroundColor $ErrorColor
         exit 1
     }
 }
 
-# 刷新 PATH
+# Refresh PATH
 Refresh-Path
 
-# 设置 npm 镜像
+# Set npm registry
 Write-Host ""
-Write-Host "[*] 设置 npm 镜像..." -ForegroundColor $InfoColor
+Write-Host "[*] Setting npm registry..." -ForegroundColor $InfoColor
 npm config set registry $NpmRegistry
-Write-Host "[OK] npm 镜像: $NpmRegistry" -ForegroundColor $SuccessColor
+Write-Host "[OK] npm registry: $NpmRegistry" -ForegroundColor $SuccessColor
 
-# 安装 pnpm
+# Install pnpm
 Write-Host ""
-Write-Host "[*] 安装 pnpm..." -ForegroundColor $InfoColor
+Write-Host "[*] Installing pnpm..." -ForegroundColor $InfoColor
 npm install -g pnpm
 pnpm config set registry $NpmRegistry 2>$null
-Write-Host "[OK] pnpm 已安装" -ForegroundColor $SuccessColor
+Write-Host "[OK] pnpm installed" -ForegroundColor $SuccessColor
 
-# 刷新 PATH
+# Refresh PATH
 Refresh-Path
 
-# 确定安装包名
+# Determine package name
 if ($UseBeta) {
-    $packageSpec = "openclaw-cn@beta"
+    $packageSpec = "openclaw@beta"
 } elseif ($OpenclawVersion -ne "latest") {
-    $packageSpec = "openclaw-cn@$OpenclawVersion"
+    $packageSpec = "openclaw@$OpenclawVersion"
 } else {
-    $packageSpec = "openclaw-cn"
+    $packageSpec = "openclaw"
 }
 
-# 安装 OpenClaw
+# Install OpenClaw
 Write-Host ""
-Write-Host "[*] 安装 $packageSpec..." -ForegroundColor $InfoColor
-Write-Host "    镜像: $NpmRegistry" -ForegroundColor $MutedColor
+Write-Host "[*] Installing $packageSpec..." -ForegroundColor $InfoColor
+Write-Host "    Registry: $NpmRegistry" -ForegroundColor $MutedColor
 
 $installLog = "$env:TEMP\openclaw_install_$PID.log"
 
-# 使用 tee 记录日志
+# Install with logging
 $npmExitCode = 0
 npm --no-fund --no-audit install -g $packageSpec --registry $NpmRegistry 2>&1 | Tee-Object -Variable npmOutput | Out-File -FilePath $installLog -Encoding UTF8
 $npmExitCode = $LASTEXITCODE
 
 if ($npmExitCode -ne 0) {
-    Write-Host "[!] npm 安装出现问题，查看日志..." -ForegroundColor $WarnColor
+    Write-Host "[!] npm install issues detected, checking log..." -ForegroundColor $WarnColor
 
-    # 常见错误检测
+    # Common error detection
     if ($npmOutput -match "ENOTEMPTY|directory not empty") {
-        Write-Host "[*] 清理残留目录并重试..." -ForegroundColor $InfoColor
+        Write-Host "[*] Cleaning leftover directory and retrying..." -ForegroundColor $InfoColor
         $globalModules = npm root -g
-        $openclawPath = Join-Path $globalModules "openclaw-cn"
+        $openclawPath = Join-Path $globalModules "openclaw"
         if (Test-Path $openclawPath) {
             Remove-Item -Path $openclawPath -Recurse -Force -ErrorAction SilentlyContinue
             npm install -g $packageSpec --registry $NpmRegistry
@@ -250,59 +245,59 @@ if ($npmExitCode -ne 0) {
     }
 
     if ($npmOutput -match "git|not found") {
-        Write-Host "[!] 检测到 git 相关错误" -ForegroundColor $WarnColor
-        Write-Host "请确保已安装 git: winget install Git.Git" -ForegroundColor $InfoColor
+        Write-Host "[!] Git-related error detected" -ForegroundColor $WarnColor
+        Write-Host "Please ensure git is installed: winget install Git.Git" -ForegroundColor $InfoColor
     }
 
     if ($npmOutput -match "EACCES|permission denied") {
-        Write-Host "[!] 权限问题 (EACCES/permission denied)" -ForegroundColor $WarnColor
-        Write-Host "建议使用管理员权限运行 PowerShell" -ForegroundColor $InfoColor
+        Write-Host "[!] Permission issue (EACCES/permission denied)" -ForegroundColor $WarnColor
+        Write-Host "Try running PowerShell as Administrator" -ForegroundColor $InfoColor
     }
 
     if ($npmOutput -match "node-gyp|gyp ERR|C\+\+") {
-        Write-Host "[!] 编译依赖缺失 (node-gyp)" -ForegroundColor $WarnColor
-        Write-Host "可能需要安装 Visual Studio Build Tools" -ForegroundColor $InfoColor
+        Write-Host "[!] Build dependency missing (node-gyp)" -ForegroundColor $WarnColor
+        Write-Host "You may need Visual Studio Build Tools" -ForegroundColor $InfoColor
     }
 
-    # 输出日志末尾
+    # Output log tail
     Write-Host ""
-    Write-Host "=== npm 输出 (最后 20 行) ===" -ForegroundColor $MutedColor
+    Write-Host "=== npm output (last 20 lines) ===" -ForegroundColor $MutedColor
     Get-Content $installLog -Tail 20 -ErrorAction SilentlyContinue
     Write-Host ""
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "安装失败" -ForegroundColor $ErrorColor
+        Write-Host "Installation failed" -ForegroundColor $ErrorColor
         exit 1
     }
 }
 
-# 清理日志
+# Clean up log
 Remove-Item $installLog -ErrorAction SilentlyContinue
 
-Write-Host "[OK] OpenClaw 安装成功" -ForegroundColor $SuccessColor
+Write-Host "[OK] OpenClaw installed successfully" -ForegroundColor $SuccessColor
 
-# 刷新 PATH
+# Refresh PATH
 Refresh-Path
 
-# 显示版本
+# Show version
 Write-Host ""
 $version = $null
 try {
-    $version = & openclaw-cn --version 2>&1
+    $version = & openclaw --version 2>&1
 } catch {}
 
 if ($version -and $version -notmatch 'not recognized') {
-    Write-Host "[OK] 版本: $version" -ForegroundColor $SuccessColor
+    Write-Host "[OK] Version: $version" -ForegroundColor $SuccessColor
 } else {
-    Write-Host "[!] 无法验证安装，可能需要重启终端" -ForegroundColor $WarnColor
+    Write-Host "[!] Cannot verify installation, you may need to restart terminal" -ForegroundColor $WarnColor
 }
 
-# 运行新手引导
+# Run onboarding
 if (-not $NoOnboard) {
     Write-Host ""
-    Write-Host "[*] 启动新手引导..." -ForegroundColor $InfoColor
+    Write-Host "[*] Starting onboarding..." -ForegroundColor $InfoColor
 
-    # 检测交互环境
+    # Detect interactive environment
     $isInteractive = $true
     try {
         if ($Host.Name -eq "ServerRemoteHost") {
@@ -316,35 +311,35 @@ if (-not $NoOnboard) {
 
     if ($isInteractive) {
         try {
-            & openclaw-cn onboard
+            & openclaw onboard
         } catch {
-            Write-Host "[!] 新手引导失败: $($_.Exception.Message)" -ForegroundColor $WarnColor
-            Write-Host "可以稍后运行 'openclaw-cn onboard' 完成配置" -ForegroundColor $InfoColor
+            Write-Host "[!] Onboarding failed: $($_.Exception.Message)" -ForegroundColor $WarnColor
+            Write-Host "You can run 'openclaw onboard' later to complete setup" -ForegroundColor $InfoColor
         }
     } else {
-        Write-Host "非交互环境，请稍后在终端中运行 'openclaw-cn onboard'" -ForegroundColor $WarnColor
+        Write-Host "Non-interactive environment, please run 'openclaw onboard' in terminal later" -ForegroundColor $WarnColor
     }
 } else {
     Write-Host ""
-    Write-Host "提示: 运行 'openclaw-cn onboard' 开始配置" -ForegroundColor $InfoColor
+    Write-Host "Tip: Run 'openclaw onboard' to start configuration" -ForegroundColor $InfoColor
 }
 
-# 完成提示
+# Completion message
 Write-Host ""
 Write-Host "============================================" -ForegroundColor $SuccessColor
-Write-Host "安装完成!" -ForegroundColor $SuccessColor
+Write-Host "Installation complete!" -ForegroundColor $SuccessColor
 Write-Host "============================================" -ForegroundColor $SuccessColor
 Write-Host ""
-Write-Host "后续操作:" -ForegroundColor $InfoColor
-Write-Host "  1. 运行 openclaw gateway 启动"
-Write-Host "  2. 查看配置: openclaw config file"
-Write-Host "  3. 升级版本: openclaw update"
+Write-Host "Next steps:" -ForegroundColor $InfoColor
+Write-Host "  1. Run 'openclaw gateway' to start"
+Write-Host "  2. View config: openclaw config file"
+Write-Host "  3. Update version: openclaw update"
 Write-Host ""
-Write-Host "注意:" -ForegroundColor $WarnColor
-Write-Host "  - 如果命令找不到，请重启 PowerShell"
-Write-Host "  - 需要管理员权限运行 Gateway"
+Write-Host "Note:" -ForegroundColor $WarnColor
+Write-Host "  - If command not found, please restart PowerShell"
+Write-Host "  - Gateway requires administrator privileges"
 
-# 保持窗口打开
+# Keep window open
 Write-Host ""
-Write-Host "按任意键退出..." -ForegroundColor $MutedColor
+Write-Host "Press any key to exit..." -ForegroundColor $MutedColor
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
