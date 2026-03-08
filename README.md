@@ -1,6 +1,6 @@
 # OpenClaw 多平台一键安装脚本
 
-> Last updated: 2026-03-07 | Update by Claude-4.6-Sonnet
+> Last updated: 2026-03-08 | Update by Claude-4.6-Sonnet
 
 这是一个跨平台的 OpenClaw AI Agent 自动化安装脚本，支持 **Ubuntu (Linux)**、**macOS** 和 **Windows**。
 
@@ -12,8 +12,9 @@
 
 | 分支 | 适配 OpenClaw 版本 | 状态 |
 |------|-------------------|------|
-| [2026.3.2](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.2) | v2026.3.2 | ✅ 最新 |
-| [2026.3.1](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.1) | v2026.3.1 | 维护中 |
+| [2026.3.7](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.7) | v2026.3.7 | ✅ 最新 |
+| [2026.3.2](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.2) | v2026.3.2 | 维护中 |
+| [2026.3.1](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.1) | v2026.3.1 | 归档 |
 | [2026.2.26](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.2.26) | v2026.2.26 | 归档 |
 | [2026.2.19](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.2.19) | v2026.2.19 | 归档 |
 | main | 通用安装脚本（兼容最新版本） | ✅ 推荐 |
@@ -50,7 +51,7 @@ curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/opencl
 
 **或指定版本：**
 ```bash
-OPENCLAW_VERSION=2026.3.2 curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh | bash
+OPENCLAW_VERSION=2026.3.7 curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh | bash
 ```
 
 ### 🍎 macOS
@@ -112,7 +113,7 @@ sudo bash scripts/update.sh
 sudo bash scripts/update.sh
 
 # 或指定版本
-OPENCLAW_VERSION=2026.3.2 sudo bash scripts/update.sh
+OPENCLAW_VERSION=2026.3.7 sudo bash scripts/update.sh
 ```
 
 `update.sh` 会自动：
