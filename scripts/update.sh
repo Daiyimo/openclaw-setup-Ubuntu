@@ -5,7 +5,7 @@
 #
 # 用法：
 #   sudo bash update.sh              # 升级到最新版
-#   OPENCLAW_VERSION=2026.3.7 sudo bash update.sh  # 升级到指定版本
+#   OPENCLAW_VERSION=2026.3.8 sudo bash update.sh  # 升级到指定版本
 #   sudo bash update.sh --reinstall # 强制重新安装
 
 ACTUAL_USER=${SUDO_USER:-$USER}
