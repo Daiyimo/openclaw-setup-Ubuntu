@@ -18,8 +18,10 @@ NC='\033[0m'
 # 国内服务器访问 npmjs.org / NodeSource 较慢，统一切换镜像源。
 # npm 镜像：npmmirror.com（阿里云官方维护，与 npmjs.org 实时同步）
 # NodeSource 镜像：通过 gh-proxy 代理拉取安装脚本
+# GitHub 资源：使用 gh-proxy 代理加速
 # ============================================================
 NPM_MIRROR="https://registry.npmmirror.com"
+GHPROXY="https://gh-proxy.com"
 
 apply_npm_mirror() {
     echo -e "${CYAN}[加速] 设置 npm 镜像 -> $NPM_MIRROR${NC}"
@@ -79,12 +81,16 @@ echo -e "\n${YELLOW}>>> 2.5 获取自定义配置仓库...${NC}"
 [ ! -d "setup_repo" ] && sudo -u "$ACTUAL_USER" git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup_repo
 
 echo -e "\n${YELLOW}>>> 3. 处理 OpenClaw 安装脚本...${NC}"
-curl -fsSL https://openclaw.ai/install.sh -o openclaw_install.sh
-chown "$ACTUAL_USER:$ACTUAL_USER" openclaw_install.sh
-
-# 【关键优化】强制修改官方脚本中的版本逻辑 (尝试匹配并替换)
-sed -i "s/VERSION=\"latest\"/VERSION=\"$OPENCLAW_VERSION\"/g" openclaw_install.sh 2>/dev/null
-sed -i "s/version=\"latest\"/version=\"$OPENCLAW_VERSION\"/g" openclaw_install.sh 2>/dev/null
+# 尝试下载 OpenClaw 安装脚本（可能已失效，不影响选项 2/3）
+curl -fsSL https://openclaw.ai/install.sh -o openclaw_install.sh 2>/dev/null || true
+if [ -f openclaw_install.sh ]; then
+    chown "$ACTUAL_USER:$ACTUAL_USER" openclaw_install.sh
+    # 【关键优化】强制修改官方脚本中的版本逻辑
+    sed -i "s/VERSION=\"latest\"/VERSION=\"$OPENCLAW_VERSION\"/g" openclaw_install.sh 2>/dev/null
+    sed -i "s/version=\"latest\"/version=\"$OPENCLAW_VERSION\"/g" openclaw_install.sh 2>/dev/null
+    # 尝试替换 gum 下载链接（使用 gh-proxy）
+    sed -i 's|https://github.com/charmbracelet/gum|https://gh-proxy.com/https://github.com/charmbracelet/gum|g' openclaw_install.sh 2>/dev/null
+fi
 
 echo -e "\n${GREEN}-------------------------------------------${NC}"
 echo -e "设备 IP: ${CYAN}$(ip addr | grep -E "inet 19(2|8)" | head -n 1 | awk '{print $2}' | cut -d/ -f1)${NC}"
@@ -94,21 +100,32 @@ echo -e "npm 镜像: ${CYAN}$NPM_MIRROR${NC}"
 echo -e "-------------------------------------------${NC}"
 
 echo -e "${YELLOW}请选择安装方式：${NC}"
-echo "1) 官方脚本安装 (已通过 sed 尝试锁定版本)"
-echo "2) pnpm 锁定版本安装 (推荐，最快)"
-echo "3) npm 锁定版本安装 (最稳)"
+echo "1) 官方脚本安装 (需要访问 GitHub，国内服务器易失败)"
+echo "2) pnpm 锁定版本安装 (推荐，走 npmmirror 镜像)"
+echo "3) npm 锁定版本安装 (最稳，走 npmmirror 镜像)"
 echo "n) 暂不安装"
 read -p "选项 [1/2/3/n]: " choice
 
 case $choice in
     1)
-        sudo -E -u "$ACTUAL_USER" bash openclaw_install.sh
+        echo -e "${YELLOW}提示：官方脚本需要访问 GitHub，国内服务器可能超时${NC}"
+        echo -e "${CYAN}如果超时，请按 Ctrl+C 中断，选择选项 2 或 3${NC}"
+        sleep 2
+        # 设置 npm 镜像环境变量，让官方脚本的 npm install 走加速
+        export npm_config_registry="$NPM_MIRROR"
+        sudo -E -u "$ACTUAL_USER" env npm_config_registry="$NPM_MIRROR" bash openclaw_install.sh
         ;;
     2)
-        sudo -u "$ACTUAL_USER" pnpm add -g "openclaw@$OPENCLAW_VERSION"
+        echo -e "${CYAN}使用 pnpm 安装 (已配置镜像)...${NC}"
+        # 确保 pnpm 使用镜像，并修复 PATH 问题
+        sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm config set registry "$NPM_MIRROR" 2>/dev/null || true
+        sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$OPENCLAW_VERSION"
         ;;
     3)
-        sudo -u "$ACTUAL_USER" npm install -g "openclaw@$OPENCLAW_VERSION"
+        echo -e "${CYAN}使用 npm 安装 (已配置镜像)...${NC}"
+        # npm 全局安装需要 root 权限，使用 sudo
+        sudo npm config set registry "$NPM_MIRROR"
+        sudo npm install -g "openclaw@$OPENCLAW_VERSION"
         ;;
     *)
         echo -e "${RED}跳过安装。${NC}"
@@ -117,11 +134,41 @@ case $choice in
 esac
 
 # --- 4. 善后处理 ---
-echo -e "\n${GREEN}>>> 4. 最后的检查...${NC}"
-sudo -u "$ACTUAL_USER" pm2 --version > /dev/null 2>&1
+echo -e "\n${GREEN}>>> 4. 最后的检查与配置...${NC}"
+
+# 确保 pnpm 环境变量
+export PATH="$USER_HOME/.local/bin:/usr/local/bin:/usr/bin:$PATH"
+
+# 尝试找到 openclaw 二进制文件位置
+OPENCLAW_BIN=""
+for path in "$USER_HOME/.local/bin/openclaw" "/usr/local/bin/openclaw" "/usr/bin/openclaw"; do
+    if [ -f "$path" ]; then
+        OPENCLAW_BIN="$path"
+        break
+    fi
+done
+
+# 创建软链接，让 sudo 也能使用新版本
+if [ -n "$OPENCLAW_BIN" ]; then
+    ln -sf "$OPENCLAW_BIN" /usr/local/bin/openclaw 2>/dev/null || true
+    echo -e "${GREEN}[✓] 已创建软链接 /usr/local/bin/openclaw (sudo 可用)${NC}"
+fi
+
+# 验证安装
+INSTALLED_VERSION=$(openclaw --version 2>/dev/null | grep -oP 'OpenClaw \K[0-9.]+' || echo "")
+if [ -n "$INSTALLED_VERSION" ]; then
+    echo -e "${GREEN}[✓] OpenClaw $INSTALLED_VERSION 安装成功${NC}"
+
+    # 自动运行新手引导
+    echo -e "\n${CYAN}正在运行新手引导...${NC}"
+    openclaw onboard --install-daemon
+else
+    echo -e "${RED}[✗] 安装验证失败${NC}"
+fi
 
 echo -e "${GREEN}安装完成！${NC}"
 echo -e "${YELLOW}重要提示：${NC}"
 echo -e "1. 请执行 ${CYAN}source ~/.bashrc${NC} 来激活命令。"
-echo -e "2. 建议使用 ${CYAN}pm2 start openclaw${NC} 来运行程序。"
-echo -e "3. 升级 OpenClaw：${CYAN}openclaw update${NC}（已自动走 npmmirror 加速）。"
+echo -e "2. 直接运行 ${CYAN}openclaw gateway${NC} 即可启动。"
+echo -e "3. 使用 ${CYAN}sudo openclaw gateway${NC} 也能运行新版本。"
+echo -e "4. 升级 OpenClaw：${CYAN}openclaw update${NC}（已自动走 npmmirror 加速）。"
