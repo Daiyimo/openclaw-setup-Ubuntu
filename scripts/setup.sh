@@ -104,26 +104,56 @@ echo "3) npm 锁定版本安装 (最稳，走 npmmirror 镜像)"
 echo "n) 暂不安装"
 
 # 强制用户输入有效选项
-while true; do
-    printf "选项 [1/2/3/n]: "
-    read choice
-    # 去除前后空格
-    choice=$(echo "$choice" | xargs)
+choice=""
+# 检测是否通过管道调用，如果是则从 tty 读取
+if [ -t 0 ]; then
+    # 标准输入是终端，直接读取
+    while true; do
+        printf "选项 [1/2/3/n]: "
+        read choice
+        # 去除前后空格
+        choice=$(echo "$choice" | xargs 2>/dev/null)
 
-    if [ -z "$choice" ]; then
-        echo -e "${RED}输入不能为空，请输入 1、2、3 或 n${NC}"
-        continue
-    fi
+        if [ -z "$choice" ]; then
+            echo -e "${RED}输入不能为空，请输入 1、2、3 或 n${NC}"
+            continue
+        fi
 
-    case "$choice" in
-        1|2|3|n|N)
-            break
-            ;;
-        *)
-            echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}"
-            ;;
-    esac
-done
+        case "$choice" in
+            1|2|3|n|N)
+                break
+                ;;
+            *)
+                echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}"
+                ;;
+        esac
+    done
+else
+    # 标准输入是管道，从 tty 读取用户输入
+    while true; do
+        printf "选项 [1/2/3/n]: "
+        # 从终端读取
+        exec < /dev/tty
+        read choice
+        exec <&0 2>&1
+        # 去除前后空格
+        choice=$(echo "$choice" | xargs 2>/dev/null)
+
+        if [ -z "$choice" ]; then
+            echo -e "${RED}输入不能为空，请输入 1、2、3 或 n${NC}"
+            continue
+        fi
+
+        case "$choice" in
+            1|2|3|n|N)
+                break
+                ;;
+            *)
+                echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}"
+                ;;
+        esac
+    done
+fi
 
 case $choice in
     1)
