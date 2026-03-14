@@ -1,6 +1,6 @@
 # OpenClaw 多平台一键安装脚本
 
-> Last updated: 2026-03-11 | Update by Claude-4.6-Sonnet
+> Last updated: 2026-03-14 | Update by Claude-4.6-Sonnet
 
 这是一个跨平台的 OpenClaw AI Agent 自动化安装脚本，支持 **Ubuntu (Linux)**、**macOS** 和 **Windows**。
 
@@ -12,8 +12,10 @@
 
 | 分支 | 适配 OpenClaw 版本 | 状态 |
 |------|-------------------|------|
-| [2026.3.8](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.8) | v2026.3.8 | ✅ 最新 |
-| [2026.3.7](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.7) | v2026.3.7 | 维护中 |
+| [2026.3.13](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.13) | v2026.3.13 | ✅ 最新 |
+| [2026.3.11](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.11) | v2026.3.11 | 维护中 |
+| [2026.3.8](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.8) | v2026.3.8 | 归档 |
+| [2026.3.7](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.7) | v2026.3.7 | 归档 |
 | [2026.3.2](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.2) | v2026.3.2 | 归档 |
 | [2026.3.1](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.3.1) | v2026.3.1 | 归档 |
 | [2026.2.26](https://github.com/Daiyimo/openclaw-setup-Ubuntu/tree/2026.2.26) | v2026.2.26 | 归档 |
@@ -52,7 +54,7 @@ curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/opencl
 
 **或指定版本：**
 ```bash
-OPENCLAW_VERSION=2026.3.8 curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh | bash
+OPENCLAW_VERSION=2026.3.13 curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/Daiyimo/openclaw-setup-Ubuntu/main/scripts/setup.sh | bash
 ```
 
 ### 🍎 macOS
@@ -114,7 +116,7 @@ sudo bash scripts/update.sh
 sudo bash scripts/update.sh
 
 # 或指定版本
-OPENCLAW_VERSION=2026.3.8 sudo bash scripts/update.sh
+OPENCLAW_VERSION=2026.3.13 sudo bash scripts/update.sh
 ```
 
 `update.sh` 会自动：

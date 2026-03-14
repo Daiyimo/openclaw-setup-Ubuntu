@@ -18,7 +18,7 @@ if ($env:POWERSHELL_TELEMETRY_OPTOUT -ne "1") { chcp 65001 | Out-Null }
 #
 # Usage (local file):
 #   .\setup-windows.ps1
-#   .\setup-windows.ps1 -Version 2026.3.2
+#   .\setup-windows.ps1 -Version 2026.3.13
 #
 # Usage (one-line):
 #   iwr -useb https://.../setup-windows.ps1 | iex
