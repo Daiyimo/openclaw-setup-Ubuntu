@@ -4,7 +4,7 @@
 ACTUAL_USER=${SUDO_USER:-$USER}
 USER_HOME=$(eval echo ~$ACTUAL_USER)
 # 预设锁定版本
-export OPENCLAW_VERSION="2026.3.11"
+export OPENCLAW_VERSION="2026.3.13"
 
 # 定义颜色
 GREEN='\033[0;32m'

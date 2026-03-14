@@ -44,7 +44,7 @@ MUTED='\033[38;2;139;127;119m'
 NC='\033[0m'
 
 # 默认配置
-OPENCLAW_VERSION="${OPENCLAW_VERSION:-2026.3.2}"
+OPENCLAW_VERSION="${OPENCLAW_VERSION:-2026.3.13}"
 NPM_MIRROR="${NPM_MIRROR:-https://registry.npmmirror.com}"
 GHPROXY="https://gh-proxy.com"
 NO_ONBOARD=0
@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]]; do
             echo "用法: bash scripts/setup-macos.sh [选项]"
             echo ""
             echo "选项:"
-            echo "  --version <版本>   指定 OpenClaw 版本 (默认: 2026.3.2)"
+            echo "  --version <版本>   指定 OpenClaw 版本 (默认: 2026.3.13)"
             echo "  --no-onboard      跳过新手引导"
             echo "  --verbose         显示详细输出"
             echo "  --help, -h        显示此帮助"
