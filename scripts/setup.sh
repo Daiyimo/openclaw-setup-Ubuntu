@@ -70,15 +70,16 @@ pnpm config set registry "$NPM_MIRROR" 2>/dev/null || true
 # --- 核心优化：修复 pnpm 路径并持久化 ---
 if [ "$ACTUAL_USER" != "root" ]; then
     echo -e "${CYAN}正在配置 $ACTUAL_USER 的 pnpm 全局环境...${NC}"
-    sudo -u "$ACTUAL_USER" pnpm setup
-    sudo -u "$ACTUAL_USER" pnpm config set global-bin-dir "$USER_HOME/.local/bin"
-    sudo -u "$ACTUAL_USER" pnpm config set registry "$NPM_MIRROR"
+    # 使用 -H 设置 HOME 环境变量，确保 pnpm 使用正确用户的家目录
+    sudo -H -u "$ACTUAL_USER" pnpm setup
+    sudo -H -u "$ACTUAL_USER" pnpm config set global-bin-dir "$USER_HOME/.local/bin"
+    sudo -H -u "$ACTUAL_USER" pnpm config set registry "$NPM_MIRROR"
     export PATH="$USER_HOME/.local/bin:$PATH"
     grep -qF ".local/bin" "$USER_HOME/.bashrc" || echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$USER_HOME/.bashrc"
 fi
 
 echo -e "\n${YELLOW}>>> 2.5 获取自定义配置仓库...${NC}"
-[ ! -d "setup_repo" ] && sudo -u "$ACTUAL_USER" git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup_repo
+[ ! -d "setup_repo" ] && sudo -H -u "$ACTUAL_USER" git clone https://gh-proxy.com/https://github.com/Daiyimo/openclaw-setup-Ubuntu.git setup_repo
 
 echo -e "\n${YELLOW}>>> 3. 处理 OpenClaw 安装脚本...${NC}"
 # 尝试下载 OpenClaw 安装脚本（可能已失效，不影响选项 2/3）
@@ -113,13 +114,13 @@ case $choice in
         sleep 2
         # 设置 npm 镜像环境变量，让官方脚本的 npm install 走加速
         export npm_config_registry="$NPM_MIRROR"
-        sudo -E -u "$ACTUAL_USER" env npm_config_registry="$NPM_MIRROR" bash openclaw_install.sh
+        sudo -H -E -u "$ACTUAL_USER" env npm_config_registry="$NPM_MIRROR" bash openclaw_install.sh
         ;;
     2)
         echo -e "${CYAN}使用 pnpm 安装 (已配置镜像)...${NC}"
         # 确保 pnpm 使用镜像，并修复 PATH 问题
-        sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm config set registry "$NPM_MIRROR" 2>/dev/null || true
-        sudo -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$OPENCLAW_VERSION"
+        sudo -H -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm config set registry "$NPM_MIRROR" 2>/dev/null || true
+        sudo -H -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$OPENCLAW_VERSION"
         ;;
     3)
         echo -e "${CYAN}使用 npm 安装 (已配置镜像)...${NC}"
