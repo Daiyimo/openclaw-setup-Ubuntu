@@ -129,30 +129,30 @@ if [ -t 0 ]; then
         esac
     done
 else
-    # 标准输入是管道，从 tty 读取用户输入
+    # 打开终端设备到文件描述符 9
+    if ! exec 9</dev/tty 2>/dev/null; then
+        echo -e "${RED}无法打开终端，请确保在交互式终端中运行脚本${NC}"
+        exit 1
+    fi
+
     while true; do
         printf "选项 [1/2/3/n]: "
-        # 从终端读取
-        exec < /dev/tty
-        read choice
-        exec <&0 2>&1
-        # 去除前后空格
-        choice=$(echo "$choice" | xargs 2>/dev/null)
-
-        if [ -z "$choice" ]; then
-            echo -e "${RED}输入不能为空，请输入 1、2、3 或 n${NC}"
-            continue
+        if read -r -u 9 choice; then
+            choice=$(echo "$choice" | xargs 2>/dev/null)
+            if [ -z "$choice" ]; then
+                echo -e "${RED}输入不能为空，请输入 1、2、3 或 n${NC}"
+                continue
+            fi
+            case "$choice" in
+                1|2|3|n|N) break ;;
+                *) echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}" ;;
+            esac
+        else
+            echo -e "${RED}读取终端输入失败${NC}"
+            exit 1
         fi
-
-        case "$choice" in
-            1|2|3|n|N)
-                break
-                ;;
-            *)
-                echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}"
-                ;;
-        esac
     done
+    exec 9<&-
 fi
 
 case $choice in
@@ -212,7 +212,30 @@ if [ -n "$INSTALLED_VERSION" ]; then
     echo -e "\n${CYAN}正在运行新手引导...${NC}"
     openclaw onboard --install-daemon
 else
-    echo -e "${RED}[✗] 安装验证失败${NC}"
+    # 打开终端设备到文件描述符 9
+    if ! exec 9</dev/tty 2>/dev/null; then
+        echo -e "${RED}无法打开终端，请确保在交互式终端中运行脚本${NC}"
+        exit 1
+    fi
+
+    while true; do
+        printf "选项 [1/2/3/n]: "
+        if read -r -u 9 choice; then
+            choice=$(echo "$choice" | xargs 2>/dev/null)
+            if [ -z "$choice" ]; then
+                echo -e "${RED}输入不能为空，请输入 1、2、3 或 n${NC}"
+                continue
+            fi
+            case "$choice" in
+                1|2|3|n|N) break ;;
+                *) echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}" ;;
+            esac
+        else
+            echo -e "${RED}读取终端输入失败${NC}"
+            exit 1
+        fi
+    done
+    exec 9<&-
 fi
 
 echo -e "${GREEN}安装完成！${NC}"
