@@ -111,7 +111,7 @@ fi
 if command -v pnpm &>/dev/null; then
     pnpm config set registry "$NPM_MIRROR" 2>/dev/null || true
     if [ "$ACTUAL_USER" != "root" ]; then
-        sudo -H -u "$ACTUAL_USER" pnpm config set registry "$NPM_MIRROR" 2>/dev/null || true
+        su - "$ACTUAL_USER" -c "pnpm config set registry '$NPM_MIRROR'"
     fi
 fi
 echo -e "${GREEN}[✓] 镜像已设置${NC}"
@@ -135,7 +135,7 @@ case "$INSTALL_TYPE" in
         echo -e "使用 pnpm 升级..."
         # 清理旧的 pnpm 全局模块
         rm -rf "$USER_HOME/.local/share/pnpm" 2>/dev/null || true
-        sudo -H -u "$ACTUAL_USER" env PATH="$USER_HOME/.local/bin:$PATH" pnpm add -g "openclaw@$TARGET_VERSION"
+        su - "$ACTUAL_USER" -c "env PATH='$USER_HOME/.local/bin:$PATH' pnpm add -g 'openclaw@$TARGET_VERSION'"
         ;;
     npm)
         echo -e "使用 npm 升级..."
