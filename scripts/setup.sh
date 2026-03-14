@@ -104,16 +104,25 @@ echo "3) npm 锁定版本安装 (最稳，走 npmmirror 镜像)"
 echo "n) 暂不安装"
 
 # 强制用户输入有效选项
-while true; do
+choice=""
+while [ -z "$choice" ]; do
     read -p "选项 [1/2/3/n]: " choice
-    case $choice in
-        1|2|3|n)
-            break
-            ;;
-        *)
-            echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}"
-            ;;
-    esac
+    # 去除空格
+    choice=$(echo "$choice" | tr -d '[:space:]')
+    if [ -z "$choice" ]; then
+        echo -e "${RED}输入不能为空，请输入 1、2、3 或 n${NC}"
+        choice=""
+    else
+        case $choice in
+            1|2|3|n|N)
+                break
+                ;;
+            *)
+                echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}"
+                choice=""
+                ;;
+        esac
+    fi
 done
 
 case $choice in
