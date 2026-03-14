@@ -102,7 +102,19 @@ echo "1) 官方脚本安装 (需要访问 GitHub，国内服务器易失败)"
 echo "2) pnpm 锁定版本安装 (推荐，走 npmmirror 镜像)"
 echo "3) npm 锁定版本安装 (最稳，走 npmmirror 镜像)"
 echo "n) 暂不安装"
-read -p "选项 [1/2/3/n]: " choice
+
+# 强制用户输入有效选项
+while true; do
+    read -p "选项 [1/2/3/n]: " choice
+    case $choice in
+        1|2|3|n)
+            break
+            ;;
+        *)
+            echo -e "${RED}无效输入！请输入 1、2、3 或 n${NC}"
+            ;;
+    esac
+done
 
 case $choice in
     1)

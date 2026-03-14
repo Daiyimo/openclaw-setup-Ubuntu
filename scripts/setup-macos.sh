@@ -246,8 +246,19 @@ echo "n) 暂不安装"
 if [ -n "$INSTALL_METHOD" ]; then
     choice="$INSTALL_METHOD"
 elif [ -z "$CI" ]; then
-    read -p "选项 [1/2/n] (默认1): " choice
-    choice="${choice:-1}"
+    # 强制用户输入有效选项
+    while true; do
+        read -p "选项 [1/2/n] (默认1): " choice
+        choice="${choice:-1}"
+        case $choice in
+            1|2|n)
+                break
+                ;;
+            *)
+                echo -e "${ERROR}无效输入！请输入 1、2 或 n${NC}"
+                ;;
+        esac
+    done
 else
     choice="1"
 fi
